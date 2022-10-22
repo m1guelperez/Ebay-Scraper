@@ -1,3 +1,4 @@
+from datetime import datetime
 import toml
 import psycopg2
 from typing import MutableMapping
@@ -19,8 +20,21 @@ def connect_to_db(pwd: str) -> psycopg2.extensions.connection:
     return conn
 
 
-def close_connections(
-    cur: psycopg2.extensions.cursor, connection: psycopg2.extensions.connection
-):
+def close_connections(cur: psycopg2.extensions.cursor, connection: psycopg2.extensions.connection):
     cur.close()
     connection.close()
+
+
+class ItemFromEbay:
+    item_name: str
+    identifier: str
+    url: str
+    price: int
+    date: datetime
+
+    def __init__(self, item_name: str, identifier: str, url: str, price: int, date: datetime):
+        self.item_name = item_name
+        self.identifier = identifier
+        self.price = price
+        self.url = url
+        self.date = date
