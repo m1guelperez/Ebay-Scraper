@@ -1,5 +1,14 @@
+[search_settings]
+radius = "100"
+location = "juechen"
+
 [items]
 RTX_3080 = "rtx-3080"
 RTX_3080TI = "rtx-3080-ti"
 RTX_3090 = "rtx-3090"
 RTX_3090TI = "rtx-3090-ti"
+GTX_1050 = "gtx-1050"
+GTX_1050TI = "gtx-1050-ti"
+GTX_1660 = "gtx-1660"
+GTX_1660_TI = "gtx-1660-ti"
+GTX_1660_SUPER = "gtx-1660-super"
