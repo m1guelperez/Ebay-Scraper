@@ -1,0 +1,97 @@
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = ["setuptools"]
+
+[project]
+name = 'ebay_scraper' # will used in pip install <name>
+description = 'Scraper for EbayKleinanzeigen'
+version = "0.0.1"
+requires-python = ">=3.10"
+readme = 'README.md'
+dependencies = [
+  "pandas",
+  "jupyter",            # Jupyter notebook server runtime
+  "numpy",              # for numeric computations
+  "matplotlib",         # plotting library
+  "tqdm",               # progress bar library
+  "jupyter",            # Jupyter notebook server
+  "ipykernel",          # Python kernel for Jupyter
+  "jupytext",           # converts between interactive Python script and Jupyter notebook 
+  "nb-clean",           # cleans jupyter notebook
+]
+
+[project.optional-dependencies]
+# for development
+dev = [
+  "black",
+  "mypy",                  # type checking
+  "isort",                 # import sorting
+  "pylint",                # flake8  plugin, common errors and warnings
+  "pyflakes",              # flake8 plugin, common errors
+  "pycodestyle",           # flake8 plugin, opinionated code style
+  "flake8",                # linter
+  "flake8-annotations",    # warn when forgetting type annotations
+  "flake8-isort",          # run isort through flake8
+  "flake8-bandit",         # common security issues
+  "flake8-bugbear",        # common bugs
+  "flake8-builtins",       # don't override builtin symbols like list or dict
+  "flake8-comprehensions", # write better comprehensions
+  "flake8-eradicate",      # find dead code
+  "pep8-naming",           # PEP8 linting
+  "autoflake",             # automatically remove imports
+  "pre-commit",
+  "pytest",
+  "pytest-clarity",
+  "pytest-sugar",
+  "pytest-testdox",
+  "pandas-stubs",
+  "ptvsd",
+]
+
+[tool.setuptools.packages.find]
+where = ["src", "."]
+
+
+[tool.black]
+line-length = 100
+target-version = ['py310']
+extend-exclude = '''
+^/.venv
+^/venv
+^/customer-data
+^/local-data
+'''
+
+[tool.isort]
+profile = "black"
+src_paths = ["src", "tests"]
+
+[tool.pylint.MASTER]
+max-line-length = 120
+# extension-pkg-whitelist = "pydantic"
+# init-hook = "import sys; from pathlib import Path; from pylint.config import find_default_config_file; sys.path.append(Path(find_default_config_file()).parent + '/src')"
+
+
+[tool.mypy]
+# plugins = "pandera.mypy"
+# plugins = "pydantic.mypy"
+python_version = "3.10"
+files = ['src/**/*.py', "tests/**/*.py"]
+ignore_missing_imports = true
+
+[tool.autoflake]
+recursive = true
+in-place = true
+remove-all-unused-imports = true
+ignore-init-module-imports = true
+ignore-pass-after-docstring = true
+
+
+[tool.pytest.ini_options]
+addopts = "-vv --testdox"
+filterwarnings = [
+  # "ignore::DeprecationWarning:scrapy.core.downloader.contextfactory.*",
+  "ignore:The 'body' parameter is deprecated:DeprecationWarning",
+]
+pythonpath = [".", "src"]
+testpaths = ["tests"]
