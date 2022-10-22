@@ -34,7 +34,6 @@ def scrape_data(pwd: str, item: str, location: str, radius: str) -> int:
         )
         res_of_sql_exc = cur.fetchone()
         if res_of_sql_exc == None:
-            # cur = conn.cursor()
             cur.execute(
                 """INSERT INTO items(item_name,date_of_input,price,url,identifier)
                 VALUES (%s,%s,%s,%s,%s);""",
