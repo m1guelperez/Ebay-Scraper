@@ -5,7 +5,7 @@ import datetime
 
 from utils import ItemFromEbay, connect_to_db
 
-# TODO: Try to find a way to define it once and clear
+# TODO: define it once and clear
 EBAY_KLEINANZEIGEN = "https://www.ebay-kleinanzeigen.de/s-"
 
 # Makes a request, given the location and radius parameter
@@ -56,7 +56,7 @@ def find_item_information(entry: bs4.element.Tag) -> ItemFromEbay:
     split_string = str(entry["data-href"][11:]).split("/")
     item_name = split_string[0]
     identifier = split_string[1]
-    url = EBAY_KLEINANZEIGEN + "anzeige" + str(entry["data-href"])[1:]
+    url = EBAY_KLEINANZEIGEN[: len(EBAY_KLEINANZEIGEN) - 2] + str(entry["data-href"])[1:]
     price_html = entry.find("p", {"class": "aditem-main--middle--price-shipping--price"})
     price = str(price_html.text.strip())
     date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
