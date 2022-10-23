@@ -9,6 +9,16 @@ def load_configfile(path: str) -> MutableMapping:
     return toml.load(path)
 
 
+def parse_price_to_float(price: str) -> float:
+    cleared_string = ""
+    for x in price:
+        if x.isdigit():
+            cleared_string += str(x)
+        elif x == "." or x == ",":
+            cleared_string += "."
+    return float(cleared_string)
+
+
 def connect_to_db(pwd: str) -> psycopg2.extensions.connection:
     conn = psycopg2.connect(
         database="EbayItems",
