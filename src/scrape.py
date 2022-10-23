@@ -3,7 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import datetime
 
-from utils import ItemFromEbay, connect_to_db
+from utils import ItemFromEbay, connect_to_db, parse_price_to_float
 
 # TODO: define it once and clear
 EBAY_KLEINANZEIGEN = "https://www.ebay-kleinanzeigen.de/s-"
@@ -58,6 +58,6 @@ def find_item_information(entry: bs4.element.Tag) -> ItemFromEbay:
     identifier = split_string[1]
     url = EBAY_KLEINANZEIGEN[: len(EBAY_KLEINANZEIGEN) - 2] + str(entry["data-href"])[1:]
     price_html = entry.find("p", {"class": "aditem-main--middle--price-shipping--price"})
-    price = str(price_html.text.strip())
+    price = parse_price_to_float(str(price_html.text.strip()))
     date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     return ItemFromEbay(item_name=item_name, identifier=identifier, url=url, price=price, date=date)

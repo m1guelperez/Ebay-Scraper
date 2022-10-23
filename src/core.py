@@ -27,7 +27,10 @@ async def main():
                         chat_id=CHANNEL_ID,
                     )
                 elif len(list_of_new_items) == 1:
-                    if current_item in SAMIR_LIST and parse_price_to_float(list_of_new_items[0].price) <= 200.0:
+                    if (
+                        current_item in SAMIR_LIST
+                        and list_of_new_items[0].price <= 200.0
+                    ):
                         msg = "A new {} for {}!\nLink: {}".format(
                             current_item, list_of_new_items[0].price, list_of_new_items[0].url
                         )
@@ -44,7 +47,6 @@ async def main():
                             chat_id=CHANNEL_ID,
                         )
         sleep(150)
-        print("Woke up")
 
 
 if __name__ == "__main__":

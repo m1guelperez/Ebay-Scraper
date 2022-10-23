@@ -9,14 +9,19 @@ def load_configfile(path: str) -> MutableMapping:
     return toml.load(path)
 
 
-def parse_price_to_float(price: str) -> float:
+# For change offers or items without a price tag, return 0.
+def parse_price_to_float(price: str) -> int:
     cleared_string = ""
-    for x in price:
-        if x.isdigit():
-            cleared_string += str(x)
-        elif x == "." or x == ",":
-            cleared_string += "."
-    return float(cleared_string)
+    if len(price.strip()) != 0:
+        for x in price:
+            if x.isdigit():
+                cleared_string += str(x)
+        if len(cleared_string) != 0:
+            return int(cleared_string)
+        else:
+            return 0
+    else:
+        return 0
 
 
 def connect_to_db(pwd: str) -> psycopg2.extensions.connection:
@@ -30,7 +35,9 @@ def connect_to_db(pwd: str) -> psycopg2.extensions.connection:
     return conn
 
 
-def close_connections(cur: psycopg2.extensions.cursor, connection: psycopg2.extensions.connection):
+def close_db_connections(
+    cur: psycopg2.extensions.cursor, connection: psycopg2.extensions.connection
+):
     cur.close()
     connection.close()
 
