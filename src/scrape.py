@@ -3,7 +3,8 @@ import requests
 from bs4 import BeautifulSoup
 import datetime
 
-from utils import ItemFromEbay, connect_to_db, parse_price_to_float
+from utils import ItemFromEbay, parse_price_to_float
+from postgres_utils import connect_to_db, close_db_connections
 
 # TODO: define it once and clear
 EBAY_KLEINANZEIGEN = "https://www.ebay-kleinanzeigen.de/s-"
@@ -22,9 +23,9 @@ def make_request(item: str, location: str, radius: str) -> BeautifulSoup:
 
 
 # Scrape the data after a we made a request and put it into the database if it doesn't exist yet.
-def scrape_data(pwd: str, item: str, location: str, radius: str) -> int:
+def scrape_data(item: str, location: str, radius: str) -> int:
     soup = make_request(item=item, location=location, radius=radius)
-    conn = connect_to_db(pwd)
+    conn = connect_to_db()
     cur = conn.cursor()
     list_of_new_items = []
     for entry in soup.find_all("article", {"class": "aditem"}):
@@ -47,7 +48,7 @@ def scrape_data(pwd: str, item: str, location: str, radius: str) -> int:
             )
             list_of_new_items.append(ItemFromEbay)
     conn.commit()
-    conn.close()
+    close_db_connections(cur=cur, connection=conn)
     return list_of_new_items
 
 

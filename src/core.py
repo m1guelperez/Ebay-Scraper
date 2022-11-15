@@ -2,14 +2,11 @@ import asyncio
 from time import sleep
 import telegram
 from scrape import scrape_data
-from utils import load_configfile, parse_price_to_float
-
-TOKEN = load_configfile("./creds.toml")["telegram"]["token"]
-CHANNEL_ID = load_configfile("./creds.toml")["telegram"]["channelID"]
+from utils import load_configfile
+from configurations import TOKEN, CHANNEL_ID
 ITEMS = load_configfile("./items.toml")["items"]
 LOCATION = load_configfile("./items.toml")["search_settings"]["location"]
 RADIUS = load_configfile("./items.toml")["search_settings"]["radius"]
-DATABASE_PWD = load_configfile("./creds.toml")["postgres"]["password"]
 SAMIR_LIST = ["gtx-1050", "gtx-1050-ti", "gtx-1660", "gtx-1660-ti", "gtx-1660-super"]
 GIADAS_LIST = ["iphone-13pro-max-256gb"]
 
@@ -20,7 +17,7 @@ async def main():
         for item in ITEMS:
             current_item = load_configfile("./items.toml")["items"][item]
             async with bot:
-                list_of_new_items = scrape_data(DATABASE_PWD, current_item, LOCATION, RADIUS)
+                list_of_new_items = scrape_data(current_item, LOCATION, RADIUS)
                 if len(list_of_new_items) > 1:
                     msg = "{} new deal(s) for {}€!".format(len(list_of_new_items), current_item)
                     await bot.send_message(
@@ -44,8 +41,8 @@ async def main():
                             text=msg,
                             chat_id=CHANNEL_ID,
                         )
-                    elif current_item not in GIADAS_LIST and current_item not in SAMIR_LIST:
-                        msg = "A new {} for {}€!\nLink: {}".format(
+                    elif current_item not in GIADAS_LIST and current_item not in SAMIR_LIST and list_of_new_items[0].price <= 600:
+                        msg = "@GIG_0 A new {} for {}€!\nLink: {}".format(
                             current_item, list_of_new_items[0].price, list_of_new_items[0].url
                         )
                         await bot.send_message(
