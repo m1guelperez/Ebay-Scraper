@@ -19,6 +19,7 @@ async def main():
             async with bot:
                 list_of_new_items = scrape_data(current_item, LOCATION, RADIUS)
                 if len(list_of_new_items) > 1:
+                    print("Msg send")
                     msg = "{} new deal(s) for {}€!".format(len(list_of_new_items), current_item)
                     await bot.send_message(
                         text=msg,
@@ -26,6 +27,7 @@ async def main():
                     )
                 elif len(list_of_new_items) == 1:
                     if current_item in SAMIR_LIST and list_of_new_items[0].price <= 200.0:
+                        print("Msg send")
                         msg = "A new {} for {}€!\nLink: {}".format(
                             current_item, list_of_new_items[0].price, list_of_new_items[0].url
                         )
@@ -34,6 +36,7 @@ async def main():
                             chat_id=CHANNEL_ID,
                         )
                     elif current_item in GIADAS_LIST and list_of_new_items[0].price <= 1000.0:
+                        print("Msg send")
                         msg = "@gigglexyz A new {} for {}€!\nLink: {}".format(
                             current_item, list_of_new_items[0].price, list_of_new_items[0].url
                         )
@@ -42,6 +45,7 @@ async def main():
                             chat_id=CHANNEL_ID,
                         )
                     elif current_item not in GIADAS_LIST and current_item not in SAMIR_LIST and list_of_new_items[0].price <= 600:
+                        print("Msg send")
                         msg = "@GIG_0 A new {} for {}€!\nLink: {}".format(
                             current_item, list_of_new_items[0].price, list_of_new_items[0].url
                         )
@@ -49,8 +53,8 @@ async def main():
                             text=msg,
                             chat_id=CHANNEL_ID,
                         )
-                    else:
-                        print("Oops")
+                else:
+                    print("No new items available.")
         sleep(150)
 
 
