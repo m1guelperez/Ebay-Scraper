@@ -59,6 +59,9 @@ def find_item_information(entry: bs4.element.Tag) -> ItemFromEbay:
     identifier = split_string[1]
     url = EBAY_KLEINANZEIGEN[: len(EBAY_KLEINANZEIGEN) - 2] + str(entry["data-href"])[1:]
     price_html = entry.find("p", {"class": "aditem-main--middle--price-shipping--price"})
-    price = parse_price_to_float(str(price_html.text.strip()))
+    if price_html != None:
+        price = parse_price_to_float(str(price_html.text.strip()))
+    else:
+        price = 0
     date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     return ItemFromEbay(item_name=item_name, identifier=identifier, url=url, price=price, date=date)
