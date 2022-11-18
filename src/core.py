@@ -53,8 +53,6 @@ async def main():
                             text=msg,
                             chat_id=CHANNEL_ID,
                         )
-                else:
-                    print("No new items available.")
         sleep(150)
 
 
