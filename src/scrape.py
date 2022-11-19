@@ -6,7 +6,6 @@ import datetime
 from utils import ItemFromEbay, parse_price_to_float
 from postgres_utils import connect_to_db, close_db_connections
 
-# TODO: define it once and clear
 EBAY_KLEINANZEIGEN = "https://www.ebay-kleinanzeigen.de/s-"
 
 # Makes a request, given the location and radius parameter
@@ -36,14 +35,14 @@ def scrape_data(item: str, location: str, radius: str) -> int:
         res_of_sql_exc = cur.fetchone()
         if res_of_sql_exc == None:
             cur.execute(
-                """INSERT INTO items(item_name,date_of_input,price,url,identifier)
+                """INSERT INTO items(item_name,identifier,price,url,date)
                 VALUES (%s,%s,%s,%s,%s);""",
                 (
                     ItemFromEbay.item_name,
-                    ItemFromEbay.date,
+                    ItemFromEbay.identifier,
                     ItemFromEbay.price,
                     ItemFromEbay.url,
-                    ItemFromEbay.identifier,
+                    ItemFromEbay.date,
                 ),
             )
             list_of_new_items.append(ItemFromEbay)
