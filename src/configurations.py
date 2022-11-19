@@ -1,4 +1,9 @@
-from utils import load_configfile
+import toml
+from typing import MutableMapping
+
+def load_configfile(path: str) -> MutableMapping:
+    return toml.load(path)
+
 
 TOKEN = load_configfile("./creds.toml")["telegram"]["token"]
 CHANNEL_ID = load_configfile("./creds.toml")["telegram"]["channelID"]

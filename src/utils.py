@@ -1,7 +1,7 @@
 from datetime import datetime
 import toml
 from typing import MutableMapping
-#from postgres_utils import connect_to_db, close_db_connections
+from postgres_utils import connect_to_db, close_db_connections
 
 
 class ItemFromEbay:
@@ -45,24 +45,24 @@ def item_is_relevant(price_limit: int, item: ItemFromEbay):
         return False
 
 
-# def add_new_user(user_id: int):
-#     conn = connect_to_db()
-#     cur = conn.cursor()
-#     cur.execute(
-#         """INSERT INTO info (chat_id,item_name,price_limit,location,radius)
-#         VALUES (%s,%s,%s,%s);""",
-#         (user_id, 0, "", ""),
-#     )
-#     conn.commit()
-#     close_db_connections(cur=cur, connection=conn)
+def add_new_user(user_id: int):
+    conn = connect_to_db()
+    cur = conn.cursor()
+    cur.execute(
+        """INSERT INTO info (chat_id,item_name,price_limit,location,radius)
+        VALUES (%s,%s,%s,%s);""",
+        (user_id, 0, "", ""),
+    )
+    conn.commit()
+    close_db_connections(cur=cur, connection=conn)
 
 
-# def user_exists_in_db(user_id: int):
-#     conn = connect_to_db()
-#     cur = conn.cursor()
-#     cur.execute("""SELECT user_id FROM users WHERE user_id = (%s);""", (user_id))
-#     res_of_sql_exc = cur.fetchone()
-#     if res_of_sql_exc == None:
-#         return False
-#     else:
-#         return True
+def user_exists_in_db(user_id: int):
+    conn = connect_to_db()
+    cur = conn.cursor()
+    cur.execute("""SELECT user_id FROM users WHERE user_id = (%s);""", (user_id))
+    res_of_sql_exc = cur.fetchone()
+    if res_of_sql_exc == None:
+        return False
+    else:
+        return True

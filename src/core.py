@@ -8,8 +8,9 @@ from telegram.ext import (
 )
 from telegram import Update
 from scrape import scrape_data
-from utils import load_configfile
+from configurations import load_configfile
 from configurations import TOKEN, CHANNEL_ID
+from utils import user_exists_in_db, add_new_user
 
 ITEMS = load_configfile("./items.toml")["items"]
 LOCATION = load_configfile("./items.toml")["search_settings"]["location"]
@@ -19,8 +20,8 @@ GIADAS_LIST = ["iphone-13pro-max-256gb"]
 
 
 async def start_function(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # if not user_exists_in_db(int(update.message.from_user.id)):
-    #     add_new_user(int(update.message.from_user.id))
+    if not user_exists_in_db(int(update.message.from_user.id)):
+        add_new_user(int(update.message.from_user.id))
     await context.bot.send_message(
         text="Hello! This is the EbayAlerts bot.", chat_id=update.effective_chat.id
     )
