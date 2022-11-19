@@ -80,7 +80,7 @@ def item_is_relevant(price_limit: int, item: ItemFromEbay):
     else:
         return False
 
-
+# Used as initializing for the new customer (/init command in telegram)
 def add_new_customer_values(user_id: int, customer: Customer):
     conn = connect_to_db()
     cur = conn.cursor()
@@ -102,3 +102,15 @@ def user_exists_in_db(chat_id: int):
         return False
     else:
         return True
+
+#TODO: Finish the thread function
+def thread_scraping():
+    conn = connect_to_db()
+    curr = conn.cursor()
+    while True:
+        curr.execute("""SELECT item_name FROM customer;""")
+        res_of_sql_exc = curr.fetchall()
+        for item in res_of_sql_exc:
+            print(str(item).replace("(", "").replace(")", "").replace(",", "").replace("'", ""))
+
+thread_scraping()
