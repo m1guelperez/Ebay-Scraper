@@ -1,8 +1,13 @@
-import asyncio
 from time import sleep
-import telegram
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    ContextTypes,
+    filters,
+    MessageHandler,
+)
+from telegram import Update
 from scrape import scrape_data
-import datetime
 from utils import load_configfile
 from configurations import TOKEN, CHANNEL_ID
 
@@ -13,55 +18,37 @@ SAMIR_LIST = ["gtx-1050", "gtx-1050-ti", "gtx-1660", "gtx-1660-ti", "gtx-1660-su
 GIADAS_LIST = ["iphone-13pro-max-256gb"]
 
 
-async def main():
-    bot = telegram.Bot(TOKEN)
-    while True:
-        print("Start crawling for: " + str(datetime.datetime.now()))
-        for item in ITEMS:
-            current_item = load_configfile("./items.toml")["items"][item]
-            async with bot:
-                list_of_new_items = scrape_data(current_item, LOCATION, RADIUS)
-                if len(list_of_new_items) > 1:
-                    print("Msg send")
-                    msg = "{} new deal(s) for {}€!".format(len(list_of_new_items), current_item)
-                    await bot.send_message(
-                        text=msg,
-                        chat_id=CHANNEL_ID,
-                    )
-                elif len(list_of_new_items) == 1:
-                    if current_item in SAMIR_LIST and list_of_new_items[0].price <= 200.0:
-                        print("Msg send")
-                        msg = "A new {} for {}€!\nLink: {}".format(
-                            current_item, list_of_new_items[0].price, list_of_new_items[0].url
-                        )
-                        await bot.send_message(
-                            text=msg,
-                            chat_id=CHANNEL_ID,
-                        )
-                    elif current_item in GIADAS_LIST and list_of_new_items[0].price <= 1000.0:
-                        print("Msg send")
-                        msg = "@gigglexyz A new {} for {}€!\nLink: {}".format(
-                            current_item, list_of_new_items[0].price, list_of_new_items[0].url
-                        )
-                        await bot.send_message(
-                            text=msg,
-                            chat_id=CHANNEL_ID,
-                        )
-                    elif (
-                        current_item not in GIADAS_LIST
-                        and current_item not in SAMIR_LIST
-                        and list_of_new_items[0].price <= 600
-                    ):
-                        print("Msg send")
-                        msg = "@GIG_0 A new {} for {}€!\nLink: {}".format(
-                            current_item, list_of_new_items[0].price, list_of_new_items[0].url
-                        )
-                        await bot.send_message(
-                            text=msg,
-                            chat_id=CHANNEL_ID,
-                        )
-        sleep(150)
+async def start_function(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # if not user_exists_in_db(int(update.message.from_user.id)):
+    #     add_new_user(int(update.message.from_user.id))
+    await context.bot.send_message(
+        text="Hello! This is the EbayAlerts bot.", chat_id=update.effective_chat.id
+    )
+
+
+async def send_item_notification(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
+    message = ""
+    await context.bot.send_message(text=message, chat_id=chat_id)
+
+
+async def add_item_to_watchlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    return 10
+
+
+async def remove_item_from_watchlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    return 10
+
+
+def main() -> None:
+    application = ApplicationBuilder().token(TOKEN).build()
+    application.add_handler(CommandHandler("start", start_function))
+    application.add_handler(CommandHandler("add", add_item_to_watchlist))
+    application.add_handler(CommandHandler("remove", remove_item_from_watchlist))
+    application.add_handler(
+        MessageHandler(filters.TEXT & (~filters.COMMAND), send_item_notification)
+    )
+    application.run_polling()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

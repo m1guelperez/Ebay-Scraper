@@ -19,3 +19,5 @@ def close_db_connections(
 ):
     cur.close()
     connection.close()
+
+connect_to_db()
