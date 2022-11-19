@@ -5,6 +5,7 @@ from telegram.ext import (
     filters,
     MessageHandler,
 )
+import threading
 from telegram import Update
 from scrape import scrape_data
 from configurations import load_configfile
@@ -59,11 +60,13 @@ async def send_item_notification(chat_id: int, context: ContextTypes.DEFAULT_TYP
 
 
 async def add_item_to_watchlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    return 10
+    await context.bot.send_message(text="Item successfully added!", chat_id=update.effective_chat.id)
+
 
 
 async def remove_item_from_watchlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    return 10
+    await context.bot.send_message(text="Item successfully removed!", chat_id=update.effective_chat.id)
+
 
 
 # Handler if command isn't recognized
@@ -86,6 +89,8 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main() -> None:
+    thread = threading.Thread(target=scrape_data, args=(ITEMS, LOCATION, RADIUS))
+    thread.start()
     application = ApplicationBuilder().token(TOKEN).build()
     application.add_handler(CommandHandler("start", start_function))
     application.add_handler(CommandHandler("init", init_first_item))
@@ -97,6 +102,8 @@ def main() -> None:
     )
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.run_polling()
+
+    thread.join()
 
 
 if __name__ == "__main__":
