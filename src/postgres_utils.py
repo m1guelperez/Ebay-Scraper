@@ -21,3 +21,15 @@ def close_db_connections(
     connection.close()
 
 connect_to_db()
+
+def select_all_items_from_db():
+    conn = connect_to_db()
+    cur = conn.cursor()
+    cur.execute("""SELECT * FROM items;""")
+    res_of_sql_exc = cur.fetchall()
+    print(res_of_sql_exc)
+    close_db_connections(cur=cur, connection=conn)
+    return res_of_sql_exc
+
+
+select_all_items_from_db()
