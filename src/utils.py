@@ -1,9 +1,5 @@
-from datetime import datetime
-import toml
-from typing import MutableMapping
-from postgres_utils import connect_to_db, close_db_connections
+from postgres_utils import connect_to_db
 from classes import Customer, ItemFromEbay
-
 
 
 # Get values from the incoming telegram message using the /init command
@@ -12,7 +8,8 @@ def parse_message(chat_id: int, message: str):
     itemname = (characteristics[1].split(":")[1].strip()).lower().replace(" ", "-")
     itemname = replace_umlauts(itemname)
     pricelimit = int(characteristics[2].split(":")[1].strip())
-    location = characteristics[3].split(":")[1].strip()
+    location = (characteristics[3].split(":")[1].strip()).lower()
+    location = replace_umlauts(location)
     radius = int(characteristics[4].split(":")[1].strip())
     return Customer(
         chat_id=chat_id,
@@ -51,15 +48,3 @@ def item_is_relevant(price_limit: int, item: ItemFromEbay):
         return True
     else:
         return False
-
-#TODO: Finish the thread function
-def thread_scraping():
-    conn = connect_to_db()
-    curr = conn.cursor()
-    while True:
-        curr.execute("""SELECT item_name FROM customer;""")
-        res_of_sql_exc = curr.fetchall()
-        for item in res_of_sql_exc:
-            print(str(item).replace("(", "").replace(")", "").replace(",", "").replace("'", ""))
-
-# thread_scraping()
