@@ -112,8 +112,10 @@ def add_item_to_db(item: ItemFromEbay):
 def fetch_for_scraping():
     conn = connect_to_db()
     cur = conn.cursor()
-    cur.execute("""SELECT chat_id,item_name, location,radius FROM customer;""")
+    cur.execute("""SELECT * FROM customer;""")
     res_of_sql_exc = cur.fetchall()
     close_db_connections(cursor=cur, connection=conn)
     print(res_of_sql_exc)
     return res_of_sql_exc
+
+fetch_for_scraping()
