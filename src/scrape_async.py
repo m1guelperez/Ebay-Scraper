@@ -52,7 +52,6 @@ async def scrape_data_async(
         item_from_ebay = find_item_information(entry=entry)
         if not check_if_item_exists_in_db(identifier=item_from_ebay.identifier):
             add_item_to_db(item_from_ebay)
-            print(chat_id)
             if item_from_ebay.price <= price_limit:
                 msg = (
                     "There is a new offer for: "
