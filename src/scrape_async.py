@@ -5,7 +5,8 @@ from bs4 import BeautifulSoup
 import datetime
 from classes import ItemFromEbay
 from utils import parse_price_to_float
-from postgres_utils import connect_to_db, close_db_connections
+from telegram_command_utils import send_notification
+from postgres_utils import fetch_for_scraping, check_if_item_exists_in_db, add_item_to_db
 
 EBAY_KLEINANZEIGEN = "https://www.ebay-kleinanzeigen.de/s-"
 
@@ -16,7 +17,7 @@ async def async_requests(item: str, location: str, radius: str) -> BeautifulSoup
     }
     async with aiohttp.ClientSession() as session:
         async with session.get(
-            EBAY_KLEINANZEIGEN + location + "/" + item + "/k0l1185r" + radius, headers=header
+            EBAY_KLEINANZEIGEN + location + "/" + item + "/k0l1185r" + str(radius), headers=header
         ) as response:
             html = await response.text()
             soup = BeautifulSoup(html, "html.parser")
@@ -26,7 +27,11 @@ async def async_requests(item: str, location: str, radius: str) -> BeautifulSoup
 # Wrapper function such that we scrape data every 150 seconds
 async def wrap_in_inf_loop():
     while True:
-        await scrape_data_async(item="iphone 13", location="muenchen", radius="50")
+        results = fetch_for_scraping()
+        for result in results:
+            await scrape_data_async(
+                chat_id=result[0], item=result[1], location=result[2], radius=result[3]
+            )
         await asyncio.sleep(120)
 
 
@@ -35,11 +40,20 @@ def create_asnyc_loop():
     loop.run_until_complete(wrap_in_inf_loop())
 
 
-async def scrape_data_async(item: str, location: str, radius: str) -> int:
+async def scrape_data_async(chat_id: int, item: str, location: str, radius: str) -> int:
     soup = await async_requests(item=item, location=location, radius=radius)
     for entry in soup.find_all("article", {"class": "aditem"}):
         item_from_ebay = find_item_information(entry=entry)
-        print(item_from_ebay.identifier)
+        if not check_if_item_exists_in_db(identifier=item_from_ebay.identifier):
+            print("At the end")
+            add_item_to_db(item_from_ebay)
+            print(chat_id)
+            msg = (
+                "There is a new offer for: " + str(item_from_ebay.price) + "\n" + item_from_ebay.url
+            )
+            await send_notification(msg=msg, chat_id=chat_id)
+        else:
+            print("Item already exists in db!")
 
 
 def find_item_information(entry: bs4.element.Tag) -> ItemFromEbay:
