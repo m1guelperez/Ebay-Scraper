@@ -30,7 +30,11 @@ async def wrap_in_inf_loop():
         results = fetch_for_scraping()
         for result in results:
             await scrape_data_async(
-                chat_id=result[0], item=result[1], location=result[2], radius=result[3]
+                chat_id=result[0],
+                item=result[1],
+                price_limit=result[2],
+                location=result[3],
+                radius=result[4],
             )
         await asyncio.sleep(120)
 
@@ -40,20 +44,24 @@ def create_asnyc_loop():
     loop.run_until_complete(wrap_in_inf_loop())
 
 
-async def scrape_data_async(chat_id: int, item: str, location: str, radius: str) -> int:
+async def scrape_data_async(
+    chat_id: int, item: str, price_limit: int, location: str, radius: str
+) -> int:
     soup = await async_requests(item=item, location=location, radius=radius)
     for entry in soup.find_all("article", {"class": "aditem"}):
         item_from_ebay = find_item_information(entry=entry)
         if not check_if_item_exists_in_db(identifier=item_from_ebay.identifier):
-            print("At the end")
             add_item_to_db(item_from_ebay)
             print(chat_id)
-            msg = (
-                "There is a new offer for: " + str(item_from_ebay.price) + "\n" + item_from_ebay.url
-            )
-            await send_notification(msg=msg, chat_id=chat_id)
-        else:
-            print("Item already exists in db!")
+            if item_from_ebay.price <= price_limit:
+                msg = (
+                    "There is a new offer for: "
+                    + str(item_from_ebay.price)
+                    + "€"
+                    + "\n"
+                    + item_from_ebay.url
+                )
+                await send_notification(msg=msg, chat_id=chat_id)
 
 
 def find_item_information(entry: bs4.element.Tag) -> ItemFromEbay:
