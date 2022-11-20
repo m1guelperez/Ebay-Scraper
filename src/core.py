@@ -7,10 +7,16 @@ from telegram.ext import (
 )
 import threading
 from telegram import Update
-from scrape import scrape_data
+from scrape_async import *
 from configurations import load_configfile
-from configurations import TOKEN, CHANNEL_ID
-from utils import user_exists_in_db, add_new_customer_values, parse_message
+from configurations import TOKEN
+from utils import parse_message
+from postgres_utils import (
+    add_new_customer_values,
+    user_exists_in_db,
+    entry_in_customer_exists,
+    remove_customer_values,
+)
 
 ITEMS = load_configfile("./items.toml")["items"]
 LOCATION = load_configfile("./items.toml")["search_settings"]["location"]
@@ -54,19 +60,35 @@ async def init_first_item(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
-async def send_item_notification(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
+async def no_command_message(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
     message = "Use some commands to get started!"
     await context.bot.send_message(text=message, chat_id=chat_id)
 
 
 async def add_item_to_watchlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(text="Item successfully added!", chat_id=update.effective_chat.id)
-
+    customer_values = parse_message(int(update.message.from_user.id), update.message.text)
+    if not entry_in_customer_exists(int(update.message.from_user.id), customer_values["itemname"]):
+        add_new_customer_values(int(update.message.from_user.id), customer_values)
+        await context.bot.send_message(
+            text="Item successfully added!", chat_id=update.effective_chat.id
+        )
+    else:
+        await context.bot.send_message(
+            text="Item already exists in your watchlist!", chat_id=update.effective_chat.id
+        )
 
 
 async def remove_item_from_watchlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(text="Item successfully removed!", chat_id=update.effective_chat.id)
-
+    customer_values = parse_message(int(update.message.from_user.id), update.message.text)
+    if entry_in_customer_exists(int(update.message.from_user.id), customer_values["itemname"]):
+        remove_customer_values(int(update.message.from_user.id), customer_values["itemname"])
+        await context.bot.send_message(
+            text="Item successfully removed!", chat_id=update.effective_chat.id
+        )
+    else:
+        await context.bot.send_message(
+            text="Item does not exist in your watchlist!", chat_id=update.effective_chat.id
+        )
 
 
 # Handler if command isn't recognized
@@ -88,9 +110,7 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-def main() -> None:
-    thread = threading.Thread(target=scrape_data, args=(ITEMS, LOCATION, RADIUS))
-    thread.start()
+def main_telegram_bot() -> None:
     application = ApplicationBuilder().token(TOKEN).build()
     application.add_handler(CommandHandler("start", start_function))
     application.add_handler(CommandHandler("init", init_first_item))
@@ -98,13 +118,16 @@ def main() -> None:
     application.add_handler(CommandHandler("remove", remove_item_from_watchlist))
     application.add_handler(CommandHandler("help", help))
     application.add_handler(
-        MessageHandler(filters.TEXT & (~filters.COMMAND), send_item_notification)
+        MessageHandler(filters.TEXT & (~filters.COMMAND), no_command_message)
     )
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
     application.run_polling()
 
-    thread.join()
-
 
 if __name__ == "__main__":
-    main()
+    # Thread that scrapes data
+    thread = threading.Thread(target=create_asnyc_loop)
+    thread.start()
+    # main method for telegram bot in main thread that polls continuously
+    main_telegram_bot()
+    thread.join()
