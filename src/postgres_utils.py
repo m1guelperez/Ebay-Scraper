@@ -1,6 +1,6 @@
 import psycopg2
 import psycopg2.extensions
-from classes import Customer
+from classes import Customer, ItemFromEbay
 from configurations import DATABASE_PWD, PORT, USER, HOST, DATABASE
 
 
@@ -16,9 +16,9 @@ def connect_to_db() -> psycopg2.extensions.connection:
 
 
 def close_db_connections(
-    cur: psycopg2.extensions.cursor, connection: psycopg2.extensions.connection
+    cursor: psycopg2.extensions.cursor, connection: psycopg2.extensions.connection
 ):
-    cur.close()
+    cursor.close()
     connection.close()
 
 
@@ -42,7 +42,7 @@ def add_new_customer_values(user_id: int, customer: Customer):
         (user_id, customer.item_name, customer.price_limit, customer.location, customer.radius),
     )
     conn.commit()
-    close_db_connections(cur=cur, connection=conn)
+    close_db_connections(cursor=cur, connection=conn)
 
 
 def remove_customer_values(user_id: int, customer: Customer):
@@ -53,7 +53,7 @@ def remove_customer_values(user_id: int, customer: Customer):
         (user_id, customer.item_name, customer.price_limit, customer.location, customer.radius),
     )
     conn.commit()
-    close_db_connections(cur=cur, connection=conn)
+    close_db_connections(cursor=cur, connection=conn)
 
 
 def entry_in_customer_exists(chat_id: int, item_name: str):
@@ -93,3 +93,27 @@ def check_if_item_exists_in_db(identifier: str):
         return False
     else:
         return True
+
+
+def add_item_to_db(item: ItemFromEbay):
+    conn = connect_to_db()
+    cur = conn.cursor()
+    cur.execute(
+        """INSERT INTO items (item_name,identifier,price,url,date)
+        VALUES (%s,%s,%s,%s,%s);""",
+        (item.item_name, item.identifier, item.price, item.url, item.date),
+    )
+    conn.commit()
+    close_db_connections(cursor=cur, connection=conn)
+
+
+# Gets all the data from customer such that we can scrape it
+# TODO: Change database format otherwise it could happen we scrape twice the same item, maybe join the chat_ids with the same characteristics
+def fetch_for_scraping():
+    conn = connect_to_db()
+    cur = conn.cursor()
+    cur.execute("""SELECT chat_id,item_name, location,radius FROM customer;""")
+    res_of_sql_exc = cur.fetchall()
+    close_db_connections(cursor=cur, connection=conn)
+    print(res_of_sql_exc)
+    return res_of_sql_exc
