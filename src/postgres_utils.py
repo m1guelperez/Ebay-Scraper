@@ -27,7 +27,6 @@ def select_all_items_from_db() -> list[tuple]:
     cur = conn.cursor()
     cur.execute("""SELECT * FROM items;""")
     res_of_sql_exc = cur.fetchall()
-    print(res_of_sql_exc)
     close_db_connections(cur=cur, connection=conn)
     return res_of_sql_exc
 
@@ -106,13 +105,15 @@ def add_item_to_db(item: ItemFromEbay):
     conn.commit()
     close_db_connections(cursor=cur, connection=conn)
 
-def get_all_items_by_user(chat_id:int):
+
+def get_all_items_by_user(chat_id: int):
     conn = connect_to_db()
     cur = conn.cursor()
     cur.execute("""SELECT item_name FROM customer WHERE chat_id = (%s);""", (chat_id,))
     res_of_sql = cur.fetchall()
-    close_db_connections(cursor=cur,connection=conn)
+    close_db_connections(cursor=cur, connection=conn)
     return res_of_sql
+
 
 # Gets all the data from customer such that we can scrape it
 # TODO: Change database format otherwise it could happen we scrape twice the same item, maybe join the chat_ids with the same characteristics
@@ -123,5 +124,3 @@ def fetch_for_scraping() -> list[tuple]:
     res_of_sql_exc = cur.fetchall()
     close_db_connections(cursor=cur, connection=conn)
     return res_of_sql_exc
-
-fetch_for_scraping()
