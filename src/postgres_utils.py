@@ -22,7 +22,7 @@ def close_db_connections(
     connection.close()
 
 
-def select_all_items_from_db():
+def select_all_items_from_db() -> list[tuple]:
     conn = connect_to_db()
     cur = conn.cursor()
     cur.execute("""SELECT * FROM items;""")
@@ -56,7 +56,7 @@ def remove_customer_values(user_id: int, customer: Customer):
     close_db_connections(cursor=cur, connection=conn)
 
 
-def entry_in_customer_exists(chat_id: int, item_name: str):
+def entry_in_customer_exists(chat_id: int, item_name: str) -> bool:
     conn = connect_to_db()
     cur = conn.cursor()
     cur.execute(
@@ -73,7 +73,7 @@ def entry_in_customer_exists(chat_id: int, item_name: str):
         return True
 
 
-def user_exists_in_db(chat_id: int):
+def user_exists_in_db(chat_id: int) -> bool:
     conn = connect_to_db()
     cur = conn.cursor()
     cur.execute("""SELECT chat_id FROM customer WHERE chat_id = (%s);""", (chat_id,))
@@ -84,7 +84,7 @@ def user_exists_in_db(chat_id: int):
         return True
 
 
-def check_if_item_exists_in_db(identifier: str):
+def check_if_item_exists_in_db(identifier: str) -> bool:
     conn = connect_to_db()
     cur = conn.cursor()
     cur.execute("""SELECT identifier FROM items WHERE identifier = (%s);""", (identifier,))
@@ -106,16 +106,22 @@ def add_item_to_db(item: ItemFromEbay):
     conn.commit()
     close_db_connections(cursor=cur, connection=conn)
 
+def get_all_items_by_user(chat_id:int):
+    conn = connect_to_db()
+    cur = conn.cursor()
+    cur.execute("""SELECT item_name FROM customer WHERE chat_id = (%s);""", (chat_id,))
+    res_of_sql = cur.fetchall()
+    close_db_connections(cursor=cur,connection=conn)
+    return res_of_sql
 
 # Gets all the data from customer such that we can scrape it
 # TODO: Change database format otherwise it could happen we scrape twice the same item, maybe join the chat_ids with the same characteristics
-def fetch_for_scraping():
+def fetch_for_scraping() -> list[tuple]:
     conn = connect_to_db()
     cur = conn.cursor()
     cur.execute("""SELECT * FROM customer;""")
     res_of_sql_exc = cur.fetchall()
     close_db_connections(cursor=cur, connection=conn)
-    print(res_of_sql_exc)
     return res_of_sql_exc
 
 fetch_for_scraping()
