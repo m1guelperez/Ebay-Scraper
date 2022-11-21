@@ -1,10 +1,7 @@
-from telegram.ext import (
-    ContextTypes
-)
+from telegram.ext import ContextTypes
 from telegram import Update
 from scrape_async import *
 import telegram
-from configurations import load_configfile
 from configurations import TOKEN
 from utils import parse_message
 from postgres_utils import (
@@ -12,13 +9,8 @@ from postgres_utils import (
     user_exists_in_db,
     entry_in_customer_exists,
     remove_customer_values,
+    get_all_items_by_user,
 )
-
-ITEMS = load_configfile("./items.toml")["items"]
-LOCATION = load_configfile("./items.toml")["search_settings"]["location"]
-RADIUS = load_configfile("./items.toml")["search_settings"]["radius"]
-SAMIR_LIST = ["gtx-1050", "gtx-1050-ti", "gtx-1660", "gtx-1660-ti", "gtx-1660-super"]
-GIADAS_LIST = ["iphone-13pro-max-256gb"]
 
 # /start command
 async def start_function(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -40,7 +32,6 @@ async def start_function(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # /init command
 async def init_first_item(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not user_exists_in_db(int(update.message.from_user.id)):
-        #print("User does not exist: " + str(update.message.from_user.id))
         customer_values = parse_message(int(update.message.from_user.id), update.message.text)
         add_new_customer_values(int(update.message.from_user.id), customer_values)
         await context.bot.send_message(
@@ -57,6 +48,7 @@ async def init_first_item(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
+# for everything different then a command
 async def no_command_message(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
     message = "Use some commands to get started!"
     await context.bot.send_message(text=message, chat_id=chat_id)
@@ -90,6 +82,17 @@ async def remove_item_from_watchlist(update: Update, context: ContextTypes.DEFAU
         )
 
 
+async def list_items_of_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    items = get_all_items_by_user(update.effective_chat.id)
+    if items == None:
+        await context.bot.send_message("You currently have no items added.")
+    else:
+        msg = ""
+        for item in items:
+            msg += str(item[0] + "\n")
+        await context.bot.send_message("Here is a list of your items:\n" + msg)
+
+
 # Handler if command isn't recognized
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
@@ -109,6 +112,7 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+# Method to send messages to specific chat_ids, without using a handler
 async def send_notification(chat_id: int, msg: str):
     bot = telegram.Bot(token=TOKEN)
     await bot.send_message(
