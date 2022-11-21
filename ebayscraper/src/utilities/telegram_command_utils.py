@@ -14,7 +14,7 @@ from utilities.postgres_utils import (
 )
 
 # /start command
-async def start_function(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("Got start command")
     await context.bot.send_message(
         text="Hello! This is the EbayAlerts bot.\nTo get you started, please use the /init command and copy and fill the following message:\n"
@@ -32,7 +32,7 @@ async def start_function(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # /init command
-async def init_first_item(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def init_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("Got init command")
     if not user_exists_in_db(int(update.message.from_user.id)):
         customer_values = parse_item_message(int(update.message.from_user.id), update.message.text)
@@ -59,7 +59,7 @@ async def no_command_message(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 
 # /add command
-async def add_item_to_watchlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("Got add command")
     customer_values = parse_item_message(int(update.message.from_user.id), update.message.text)
     if not entry_in_customer_db_exists(int(update.message.from_user.id), customer_values.item_name):
@@ -74,7 +74,7 @@ async def add_item_to_watchlist(update: Update, context: ContextTypes.DEFAULT_TY
 
 
 # /remove command
-async def remove_item_from_watchlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def remove_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("Got remove command")
     item_name = parse_remove_message(int(update.message.from_user.id), update.message.text)
     if entry_in_customer_db_exists(int(update.message.from_user.id), item_name):
@@ -89,7 +89,7 @@ async def remove_item_from_watchlist(update: Update, context: ContextTypes.DEFAU
 
 
 # /list command
-async def list_items_of_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("Got list command")
     items = get_all_items_by_user_from_db(update.effective_chat.id)
     if items == None:
@@ -106,7 +106,7 @@ async def list_items_of_user(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 # /update command
 # TODO: Test
-async def update_item_attribs(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def update_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("Got update command")
     list_of_updates = parse_update_message(update.effective_chat.id, update.message.text)
     update_values_in_customer_db(chat_id=update.effective_chat.id, updates=list_of_updates)
@@ -116,7 +116,7 @@ async def update_item_attribs(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 
 # Handler if command isn't recognized.
-async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("Got unknown command")
     await context.bot.send_message(
         chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command."
@@ -124,7 +124,7 @@ async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # TODO: Make examples for each command.
-async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("Got help command")
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
