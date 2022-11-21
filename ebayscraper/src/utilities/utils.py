@@ -41,8 +41,11 @@ def parse_update_message(chat_id: int, message: str) -> list:
 
 # TODO: Remove several items
 def parse_remove_message(chat_id: int, message: str) -> str:
-    message = message.split(" ")
+    message = message.splitlines()
     return message[1].lower().strip().replace(" ", "-")
+
+
+parse_remove_message(1, "/remove\nWitch Sonderheft\n audi\n opel\n")
 
 
 # For change offers or items without a price tag, return 0.
