@@ -3,13 +3,13 @@ from telegram import Update
 from scrape_async import *
 import telegram
 from configurations import TOKEN
-from utils import parse_message
-from postgres_utils import (
-    add_new_customer_values,
+from utilities.utils import parse_item_message
+from utilities.postgres_utils import (
+    add_customer_values_to_db,
     user_exists_in_db,
-    entry_in_customer_exists,
-    remove_customer_values,
-    get_all_items_by_user,
+    entry_in_customer_db_exists,
+    remove_customer_values_from_db,
+    get_all_items_by_user_from_db,
 )
 
 # /start command
@@ -21,7 +21,7 @@ async def start_function(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     await context.bot.send_message(
         text="/init\n"
-        + "Itemname: Gtx 1080\n"
+        + "Item: Gtx 1080\n"
         + "Pricelimit: 200 \n"
         + "Location: Köln\n"
         + "Radius (in km): 20",
@@ -32,8 +32,8 @@ async def start_function(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # /init command
 async def init_first_item(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not user_exists_in_db(int(update.message.from_user.id)):
-        customer_values = parse_message(int(update.message.from_user.id), update.message.text)
-        add_new_customer_values(int(update.message.from_user.id), customer_values)
+        customer_values = parse_item_message(int(update.message.from_user.id), update.message.text)
+        add_customer_values_to_db(int(update.message.from_user.id), customer_values)
         await context.bot.send_message(
             text="Great it is initialized!",
             chat_id=update.effective_chat.id,
@@ -56,9 +56,9 @@ async def no_command_message(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
 
 # /add command
 async def add_item_to_watchlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    customer_values = parse_message(int(update.message.from_user.id), update.message.text)
-    if not entry_in_customer_exists(int(update.message.from_user.id), customer_values["itemname"]):
-        add_new_customer_values(int(update.message.from_user.id), customer_values)
+    customer_values = parse_item_message(int(update.message.from_user.id), update.message.text)
+    if not entry_in_customer_db_exists(int(update.message.from_user.id), customer_values.item_name):
+        add_customer_values_to_db(int(update.message.from_user.id), customer_values)
         await context.bot.send_message(
             text="Item successfully added!", chat_id=update.effective_chat.id
         )
@@ -70,9 +70,9 @@ async def add_item_to_watchlist(update: Update, context: ContextTypes.DEFAULT_TY
 
 # /remove command
 async def remove_item_from_watchlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    customer_values = parse_message(int(update.message.from_user.id), update.message.text)
-    if entry_in_customer_exists(int(update.message.from_user.id), customer_values["itemname"]):
-        remove_customer_values(int(update.message.from_user.id), customer_values["itemname"])
+    customer_values = parse_item_message(int(update.message.from_user.id), update.message.text)
+    if entry_in_customer_db_exists(int(update.message.from_user.id), customer_values.item_name):
+        remove_customer_values_from_db(int(update.message.from_user.id), customer_values.item_name)
         await context.bot.send_message(
             text="Item successfully removed!", chat_id=update.effective_chat.id
         )
@@ -83,9 +83,11 @@ async def remove_item_from_watchlist(update: Update, context: ContextTypes.DEFAU
 
 
 async def list_items_of_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    items = get_all_items_by_user(update.effective_chat.id)
+    items = get_all_items_by_user_from_db(update.effective_chat.id)
     if items == None:
-        await context.bot.send_message("You currently have no items added.")
+        await context.bot.send_message(
+            "You currently have no items added!\nYou can add some using the /add command."
+        )
     else:
         msg = ""
         for item in items:
@@ -93,7 +95,13 @@ async def list_items_of_user(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await context.bot.send_message("Here is a list of your items:\n" + msg)
 
 
-# Handler if command isn't recognized
+async def update_item_attribs(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    update.message.text
+    message = ""
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+
+
+# Handler if command isn't recognized.
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command."
