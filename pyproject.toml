@@ -1,19 +1,18 @@
 [build-system]
+requires = [
+    "setuptools >= 50.0.0"
+]
 build-backend = "setuptools.build_meta"
-requires = ["setuptools"]
+
 
 [project]
-name = 'ebay_scraper' # will used in pip install <name>
+name = 'ebayscraper' # will used in pip install <name>
 description = 'Scraper for EbayKleinanzeigen'
 version = "0.0.1"
 requires-python = ">=3.10"
 readme = 'README.md'
 dependencies = [
-  "pandas",
   "jupyter",            # Jupyter notebook server runtime
-  "numpy",              # for numeric computations
-  "matplotlib",         # plotting library
-  "tqdm",               # progress bar library
   "jupyter",            # Jupyter notebook server
   "ipykernel",          # Python kernel for Jupyter
   "jupytext",           # converts between interactive Python script and Jupyter notebook 
