@@ -68,13 +68,9 @@ src_paths = ["src", "tests"]
 
 [tool.pylint.MASTER]
 max-line-length = 120
-# extension-pkg-whitelist = "pydantic"
-# init-hook = "import sys; from pathlib import Path; from pylint.config import find_default_config_file; sys.path.append(Path(find_default_config_file()).parent + '/src')"
 
 
 [tool.mypy]
-# plugins = "pandera.mypy"
-# plugins = "pydantic.mypy"
 python_version = "3.10"
 files = ['src/**/*.py', "tests/**/*.py"]
 ignore_missing_imports = true
@@ -90,7 +86,6 @@ ignore-pass-after-docstring = true
 [tool.pytest.ini_options]
 addopts = "-vv --testdox"
 filterwarnings = [
-  # "ignore::DeprecationWarning:scrapy.core.downloader.contextfactory.*",
   "ignore:The 'body' parameter is deprecated:DeprecationWarning",
 ]
 pythonpath = [".", "src"]
