@@ -53,6 +53,14 @@ async def scrape_data_async(
         if not check_if_item_exists_in_db(identifier=item_from_ebay.identifier):
             add_item_to_db(item_from_ebay)
             if item_from_ebay.price <= price_limit:
+                print(
+                    "Message sent at: "
+                    + str(
+                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        + "to chat_id: "
+                        + str(chat_id)
+                    )
+                )
                 msg = (
                     "There is a new offer for: "
                     + str(item_from_ebay.price)
@@ -61,6 +69,7 @@ async def scrape_data_async(
                     + item_from_ebay.url
                 )
                 await send_notification(msg=msg, chat_id=chat_id)
+
 
 # Extract the information for items of a given soup tag and returns an instance of ItemFromEbay that contains all the data
 def find_item_information(entry: bs4.element.Tag) -> ItemFromEbay:
