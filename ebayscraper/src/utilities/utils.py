@@ -37,7 +37,6 @@ def parse_update_message(chat_id: int, message: str) -> list:
         if isinstance(update, str):
             update = replace_umlauts(update)
         updates.append((value, update))
-        print(updates)
 
 
 # For change offers or items without a price tag, return 0.
@@ -53,7 +52,3 @@ def parse_price_to_float(price: str) -> int:
             return 0
     else:
         return 0
-
-
-custom = Customer(2873, "gtx-0189", 50, "Müchen", 233)
-print(custom.item_name)
