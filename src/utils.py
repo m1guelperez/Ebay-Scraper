@@ -1,5 +1,4 @@
-from postgres_utils import connect_to_db
-from classes import Customer, ItemFromEbay
+from classes import Customer
 
 
 # Get values from the incoming telegram message using the /init command
@@ -41,10 +40,3 @@ def parse_price_to_float(price: str) -> int:
             return 0
     else:
         return 0
-
-
-def item_is_relevant(price_limit: int, item: ItemFromEbay):
-    if item.price <= price_limit:
-        return True
-    else:
-        return False
