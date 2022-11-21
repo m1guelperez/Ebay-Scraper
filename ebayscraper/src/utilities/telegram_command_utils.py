@@ -3,13 +3,14 @@ from telegram import Update
 from scrape_async import *
 import telegram
 from configurations import TOKEN
-from utilities.utils import parse_item_message
+from utilities.utils import parse_item_message, parse_update_message
 from utilities.postgres_utils import (
     add_customer_values_to_db,
     user_exists_in_db,
     entry_in_customer_db_exists,
     remove_customer_values_from_db,
     get_all_items_by_user_from_db,
+    update_values_in_customer_db,
 )
 
 # /start command
@@ -82,6 +83,7 @@ async def remove_item_from_watchlist(update: Update, context: ContextTypes.DEFAU
         )
 
 
+# /list command
 async def list_items_of_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
     items = get_all_items_by_user_from_db(update.effective_chat.id)
     if items == None:
@@ -95,10 +97,14 @@ async def list_items_of_user(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await context.bot.send_message("Here is a list of your items:\n" + msg)
 
 
+# /update command
+# TODO: Test
 async def update_item_attribs(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    update.message.text
-    message = ""
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+    list_of_updates = parse_update_message(update.effective_chat.id, update.message.text)
+    update_values_in_customer_db(chat_id=update.effective_chat.id, updates=list_of_updates)
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id, text="Your item specifications have been updated!"
+    )
 
 
 # Handler if command isn't recognized.

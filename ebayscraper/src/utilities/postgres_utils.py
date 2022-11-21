@@ -130,7 +130,7 @@ def get_all_items_by_user_from_db(chat_id: int):
 
 # update[0] is the field we want to update in the database and update[1] the new value
 # TODO: refactor, its really ugly
-def update_values(chat_id: int, updates: list):
+def update_values_in_customer_db(chat_id: int, updates: list):
     conn = connect_to_db()
     cur = conn.cursor()
     item_name = updates.pop(0)[1]
@@ -158,7 +158,7 @@ def update_values(chat_id: int, updates: list):
         close_db_connections(cursor=cur, connection=conn)
 
 
-update_values(1234, [("item", "gtx-1080"), ("radius", 999)])
+update_values_in_customer_db(1234, [("item", "gtx-1080"), ("radius", 999)])
 # Gets all the data from customer such that we can scrape it
 # TODO: Change database format otherwise it could happen we scrape twice the same item, maybe join the chat_ids with the same characteristics
 def fetch_for_scraping() -> list[tuple]:
