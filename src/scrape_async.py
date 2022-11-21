@@ -62,7 +62,7 @@ async def scrape_data_async(
                 )
                 await send_notification(msg=msg, chat_id=chat_id)
 
-
+# Extract the information for items of a given soup tag and returns an instance of ItemFromEbay that contains all the data
 def find_item_information(entry: bs4.element.Tag) -> ItemFromEbay:
     split_string = str(entry["data-href"][11:]).split("/")
     item_name = split_string[0]
