@@ -14,7 +14,7 @@ from utilities.telegram_command_utils import (
     list_items_of_user,
     no_command_message,
     unknown,
-    error_handler
+    error_handler,
 )
 from configurations import TOKEN
 

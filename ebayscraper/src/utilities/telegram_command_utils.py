@@ -3,7 +3,7 @@ from telegram import Update
 from scrape_async import *
 import telegram
 from configurations import TOKEN
-from utilities.utils import parse_item_message, parse_update_message
+from utilities.utils import parse_item_message, parse_update_message, parse_remove_message
 from utilities.postgres_utils import (
     add_customer_values_to_db,
     user_exists_in_db,
@@ -76,9 +76,9 @@ async def add_item_to_watchlist(update: Update, context: ContextTypes.DEFAULT_TY
 # /remove command
 async def remove_item_from_watchlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("Got remove command")
-    customer_values = parse_item_message(int(update.message.from_user.id), update.message.text)
-    if entry_in_customer_db_exists(int(update.message.from_user.id), customer_values.item_name):
-        remove_customer_values_from_db(int(update.message.from_user.id), customer_values.item_name)
+    item_name = parse_remove_message(int(update.message.from_user.id), update.message.text)
+    if entry_in_customer_db_exists(int(update.message.from_user.id), item_name):
+        remove_customer_values_from_db(int(update.message.from_user.id), item_name)
         await context.bot.send_message(
             text="Item successfully removed!", chat_id=update.effective_chat.id
         )

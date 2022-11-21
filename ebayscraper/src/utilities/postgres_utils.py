@@ -51,18 +51,12 @@ def add_customer_values_to_db(user_id: int, customer: Customer):
     close_db_connections(cursor=cur, connection=conn)
 
 
-def remove_customer_values_from_db(user_id: int, customer: Customer):
+def remove_customer_values_from_db(chat_id: int, item_name: str):
     conn = connect_to_db()
     cur = conn.cursor()
     cur.execute(
         """DELETE FROM customer WHERE chat_id = (%s) AND item_name = (%s);""",
-        (
-            user_id,
-            customer.item_name,
-            customer.price_limit,
-            customer.location,
-            customer.radius,
-        ),
+        (chat_id, item_name),
     )
     conn.commit()
     close_db_connections(cursor=cur, connection=conn)

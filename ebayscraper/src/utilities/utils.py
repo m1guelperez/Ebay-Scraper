@@ -10,7 +10,7 @@ def replace_umlauts(string: str):
 
 
 # Get values from the incoming telegram message using the /init command
-def parse_item_message(chat_id: int, message: str):
+def parse_item_message(chat_id: int, message: str) -> Customer:
     characteristics = message.splitlines()
     item = (characteristics[1].split(":")[1].strip()).lower().replace(" ", "-")
     item = replace_umlauts(item)
@@ -37,6 +37,12 @@ def parse_update_message(chat_id: int, message: str) -> list:
         if isinstance(update, str):
             update = replace_umlauts(update)
         updates.append((value, update))
+
+
+# TODO: Remove several items
+def parse_remove_message(chat_id: int, message: str) -> str:
+    message = message.split(" ")
+    return message[1].lower().strip()
 
 
 # For change offers or items without a price tag, return 0.
