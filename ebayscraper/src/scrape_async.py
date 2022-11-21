@@ -27,6 +27,7 @@ async def async_requests(item: str, location: str, radius: str) -> BeautifulSoup
 # Wrapper function such that we scrape data every 150 seconds
 async def wrap_in_inf_loop():
     while True:
+        print("Scraping data at: " + str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
         results = fetch_for_scraping()
         for result in results:
             await scrape_data_async(
