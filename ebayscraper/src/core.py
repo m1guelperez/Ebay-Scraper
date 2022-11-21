@@ -14,6 +14,7 @@ from utilities.telegram_command_utils import (
     list_items_of_user,
     no_command_message,
     unknown,
+    error_handler
 )
 from configurations import TOKEN
 
@@ -28,6 +29,7 @@ def main_telegram_bot() -> None:
     application.add_handler(CommandHandler("help", help))
     application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), no_command_message))
     application.add_handler(MessageHandler(filters.COMMAND, unknown))
+    application.add_error_handler(error_handler)
     application.run_polling()
 
 
