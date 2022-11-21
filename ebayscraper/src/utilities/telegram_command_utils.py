@@ -132,7 +132,9 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         + "/start - Start the bot\n"
         + "/init - Initialize the bot\n"
         + "/add - Add an item to the watchlist\n"
-        + "/remove - Remove an item from the watchlist",
+        + "/remove - Remove an item from the watchlist"
+        + "/list - List all items in the watchlist\n"
+        + "/update - Update an item in the watchlist\n",
     )
 
 
