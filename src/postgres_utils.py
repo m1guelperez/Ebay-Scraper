@@ -32,7 +32,7 @@ def select_all_items_from_db() -> list[tuple]:
 
 
 # Used as initializing for the new customer (/init command in telegram)
-def add_new_customer_values(user_id: int, customer: Customer):
+def add_customer_values_to_db(user_id: int, customer: Customer):
     conn = connect_to_db()
     cur = conn.cursor()
     cur.execute(
@@ -44,7 +44,7 @@ def add_new_customer_values(user_id: int, customer: Customer):
     close_db_connections(cursor=cur, connection=conn)
 
 
-def remove_customer_values(user_id: int, customer: Customer):
+def remove_customer_values_from_db(user_id: int, customer: Customer):
     conn = connect_to_db()
     cur = conn.cursor()
     cur.execute(
@@ -55,7 +55,7 @@ def remove_customer_values(user_id: int, customer: Customer):
     close_db_connections(cursor=cur, connection=conn)
 
 
-def entry_in_customer_exists(chat_id: int, item_name: str) -> bool:
+def entry_in_customer_db_exists(chat_id: int, item_name: str) -> bool:
     conn = connect_to_db()
     cur = conn.cursor()
     cur.execute(
@@ -106,7 +106,7 @@ def add_item_to_db(item: ItemFromEbay):
     close_db_connections(cursor=cur, connection=conn)
 
 
-def get_all_items_by_user(chat_id: int):
+def get_all_items_by_user_from_db(chat_id: int):
     conn = connect_to_db()
     cur = conn.cursor()
     cur.execute("""SELECT item_name FROM customer WHERE chat_id = (%s);""", (chat_id,))
