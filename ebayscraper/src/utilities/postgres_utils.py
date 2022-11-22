@@ -62,6 +62,14 @@ def remove_customer_values_from_db(chat_id: int, item_name: str):
     close_db_connections(cursor=cur, connection=conn)
 
 
+def remove_all_items_of_user_from_db(chat_id: int):
+    conn = connect_to_db()
+    cur = conn.cursor()
+    cur.execute("""DELETE FROM customer WHERE chat_id = (%s);""", (chat_id,))
+    conn.commit()
+    close_db_connections(cursor=cur, connection=conn)
+
+
 def entry_in_customer_db_exists(chat_id: int, item_name: str) -> bool:
     conn = connect_to_db()
     cur = conn.cursor()

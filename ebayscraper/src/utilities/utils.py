@@ -10,14 +10,18 @@ def replace_umlauts(string: str):
 
 
 # Get values from the incoming telegram message using the /init command
-def parse_item_message(chat_id: int, message: str) -> Customer:
-    characteristics = message.splitlines()
-    item = (characteristics[1].split(":")[1].strip()).lower().replace(" ", "-")
+def parse_item_message(chat_id: int, message: str) -> Customer | None:
+    characteristics = message.split(",")
+    # Remove the first element of the list, which is the command itself
+    characteristics[0] = str(characteristics[0])[4:]
+    if len(characteristics) < 4:
+        return None
+    item = characteristics[0].strip().lower().replace(" ", "-")
     item = replace_umlauts(item)
-    pricelimit = int(characteristics[2].split(":")[1].strip())
-    location = (characteristics[3].split(":")[1].strip()).lower()
+    pricelimit = int(characteristics[1].strip())
+    location = characteristics[2].strip().lower()
     location = replace_umlauts(location)
-    radius = int(characteristics[4].split(":")[1].strip())
+    radius = int(characteristics[3].strip())
     return Customer(
         chat_id=chat_id,
         item_name=item,
@@ -39,14 +43,18 @@ def parse_update_message(message: str) -> list:
         updates.append((value, update))
 
 
-# TODO: Remove several items
-def parse_remove_message(message: str) -> str:
-    message = message.splitlines()
-    return message[1].lower().strip().replace(" ", "-")
+def parse_remove_message(message: str) -> list | None:
+    message = message.split(",")
+    message[0] = str(message[0])[7:]
+    if len(message) < 2:
+        return None
+    else:
+        for item in range(len(message)):
+            message[item] = message[item].lower().strip().replace(" ", "-")
+        return message
 
 
-parse_remove_message(1, "/remove\nWitch Sonderheft\n audi\n opel\n")
-
+# parse_remove_message("/remove item1")
 
 # For change offers or items without a price tag, return 0.
 def parse_price_to_float(price: str) -> int:

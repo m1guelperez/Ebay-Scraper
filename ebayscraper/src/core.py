@@ -5,7 +5,7 @@ from telegram.ext import (
     MessageHandler,
 )
 import threading
-from scrape_async import *
+from scrape_async import create_asnyc_loop
 from utilities.telegram_command_utils import (
     start_command,
     init_command,
@@ -15,7 +15,8 @@ from utilities.telegram_command_utils import (
     no_command_message,
     unknown_command,
     error_handler,
-    help_command
+    help_command,
+    remove_all_command,
 )
 from configurations import TOKEN
 
@@ -26,6 +27,7 @@ def main_telegram_bot() -> None:
     application.add_handler(CommandHandler("init", init_command))
     application.add_handler(CommandHandler("add", add_command))
     application.add_handler(CommandHandler("remove", remove_command))
+    application.add_handler(CommandHandler("removeall", remove_all_command))
     application.add_handler(CommandHandler("list", list_command))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), no_command_message))

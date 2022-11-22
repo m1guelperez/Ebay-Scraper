@@ -22,11 +22,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         chat_id=update.effective_chat.id,
     )
     await context.bot.send_message(
-        text="/init\n"
-        + "Item: Gtx 1080\n"
-        + "Pricelimit: 200 \n"
-        + "Location: Köln\n"
-        + "Radius (in km): 20",
+        text="/init item, pricelimit, location, radius\n" + "/init GTX 1080, 650, Köln, 20",
         chat_id=update.effective_chat.id,
     )
 
@@ -46,6 +42,9 @@ async def init_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text="You already initialized the bot!\n"
             + "If you want to add a new item, please use the /add command.\n"
             + "If you want to remove an item, please use the /remove command.\n"
+            + "If you want to update an item, please use the /update command.\n"
+            + "If you want to list all your items, please use the /list command.\n"
+            + "If you want to remove all your items, please use the /removeall command."
             + "If you need help, use the /help command.",
             chat_id=update.effective_chat.id,
         )
@@ -62,30 +61,55 @@ async def no_command_message(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("Got add command")
     customer_values = parse_item_message(int(update.message.from_user.id), update.message.text)
-    if not entry_in_customer_db_exists(int(update.message.from_user.id), customer_values.item_name):
-        add_customer_values_to_db(int(update.message.from_user.id), customer_values)
+    if customer_values == None:
         await context.bot.send_message(
-            text="Item successfully added!", chat_id=update.effective_chat.id
+            text="Please use the following format:\n"
+            + "/add item, pricelimit, location, radius\n"
+            + "/add GTX 1080, 650, Köln, 20",
+            chat_id=update.effective_chat.id,
         )
     else:
-        await context.bot.send_message(
-            text="Item already exists in your watchlist!", chat_id=update.effective_chat.id
-        )
+        if not entry_in_customer_db_exists(
+            int(update.message.from_user.id), customer_values.item_name
+        ):
+            add_customer_values_to_db(int(update.message.from_user.id), customer_values)
+            await context.bot.send_message(
+                text="Item successfully added!", chat_id=update.effective_chat.id
+            )
+        else:
+            await context.bot.send_message(
+                text="Item already exists in your watchlist!", chat_id=update.effective_chat.id
+            )
 
 
 # /remove command
 async def remove_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("Got remove command")
-    item_name = parse_remove_message(int(update.message.from_user.id), update.message.text)
-    if entry_in_customer_db_exists(int(update.message.from_user.id), item_name):
-        remove_customer_values_from_db(int(update.message.from_user.id), item_name)
+    items = parse_remove_message(update.message.text)
+    if items == None:
         await context.bot.send_message(
-            text="Item successfully removed!", chat_id=update.effective_chat.id
+            text="Please use the following format:\n"
+            + "/remove item1, item2, item3\n"
+            + "/remove GTX 1080, GTX 1070, GTX 1060",
+            chat_id=update.effective_chat.id,
         )
     else:
-        await context.bot.send_message(
-            text="Item does not exist in your watchlist!", chat_id=update.effective_chat.id
-        )
+        for item in items:
+            if entry_in_customer_db_exists(int(update.message.from_user.id), item):
+                remove_customer_values_from_db(int(update.message.from_user.id), item)
+                msg = str(item) + " successfully removed!"
+                await context.bot.send_message(text=msg, chat_id=update.effective_chat.id)
+            else:
+                msg = str(item) + " does not exist in your watchlist!"
+                await context.bot.send_message(text=msg, chat_id=update.effective_chat.id)
+
+
+async def remove_all_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print("Got remove all command")
+    remove_customer_values_from_db(int(update.message.from_user.id), None)
+    await context.bot.send_message(
+        text="All items successfully removed!", chat_id=update.effective_chat.id
+    )
 
 
 # /list command
