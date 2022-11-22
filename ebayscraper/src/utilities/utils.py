@@ -27,7 +27,7 @@ def parse_item_message(chat_id: int, message: str) -> Customer:
     )
 
 
-def parse_update_message(chat_id: int, message: str) -> list:
+def parse_update_message(message: str) -> list:
     update_values = message.splitlines()
     updates = []
     for values in update_values:
@@ -40,7 +40,7 @@ def parse_update_message(chat_id: int, message: str) -> list:
 
 
 # TODO: Remove several items
-def parse_remove_message(chat_id: int, message: str) -> str:
+def parse_remove_message(message: str) -> str:
     message = message.splitlines()
     return message[1].lower().strip().replace(" ", "-")
 
