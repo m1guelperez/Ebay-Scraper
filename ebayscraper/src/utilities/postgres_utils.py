@@ -160,7 +160,6 @@ def update_values_in_customer_db(chat_id: int, updates: list):
         close_db_connections(cursor=cur, connection=conn)
 
 
-update_values_in_customer_db(1234, [("item", "gtx-1080"), ("radius", 999)])
 # Gets all the data from customer such that we can scrape it
 # TODO: Change database format otherwise it could happen we scrape twice the same item, maybe join the chat_ids with the same characteristics
 def fetch_for_scraping() -> list[tuple]:

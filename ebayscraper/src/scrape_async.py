@@ -45,9 +45,7 @@ def create_asnyc_loop():
     loop.run_until_complete(wrap_in_inf_loop())
 
 
-async def scrape_data_async(
-    chat_id: int, item: str, price_limit: int, location: str, radius: str
-) -> int:
+async def scrape_data_async(chat_id: int, item: str, price_limit: int, location: str, radius: str):
     soup = await async_requests(item=item, location=location, radius=radius)
     for entry in soup.find_all("article", {"class": "aditem"}):
         item_from_ebay = find_item_information(entry=entry)
