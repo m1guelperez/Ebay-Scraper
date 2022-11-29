@@ -13,11 +13,14 @@ from utilities.postgres_utils import (
     update_values_in_customer_db,
 )
 
+RADIUS = [5, 10, 20, 30, 50, 100, 150, 200]
+
 # /start command
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("Got start command")
     await context.bot.send_message(
         text="Hello! This is the EbayAlerts bot.\nTo get you started, please use the /init command and copy and fill the following message:\n"
+        + "The radius has to be: 5, 10, 20, 30, 50, 100, 150 or 200.\n"
         + "For example like that:",
         chat_id=update.effective_chat.id,
     )
@@ -32,11 +35,17 @@ async def init_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("Got init command")
     if not user_exists_in_db(int(update.message.from_user.id)):
         customer_values = parse_item_message(int(update.message.from_user.id), update.message.text)
-        add_customer_values_to_db(int(update.message.from_user.id), customer_values)
-        await context.bot.send_message(
-            text="Great it is initialized!",
-            chat_id=update.effective_chat.id,
-        )
+        if customer_values.radius not in RADIUS:
+            await context.bot.send_message(
+                text="The radius has to be: 5, 10, 20, 30, 50, 100, 150 or 200!",
+                chat_id=update.effective_chat.id,
+            )
+        else:
+            add_customer_values_to_db(int(update.message.from_user.id), customer_values)
+            await context.bot.send_message(
+                text="Great it is initialized!",
+                chat_id=update.effective_chat.id,
+            )
     else:
         await context.bot.send_message(
             text="You already initialized the bot!\n"
@@ -69,7 +78,12 @@ async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             chat_id=update.effective_chat.id,
         )
     else:
-        if not entry_in_customer_db_exists(
+        if customer_values.radius not in RADIUS:
+            await context.bot.send_message(
+                text="The radius has to be: 5, 10, 20, 30, 50, 100, 150 or 200!",
+                chat_id=update.effective_chat.id,
+            )
+        elif not entry_in_customer_db_exists(
             int(update.message.from_user.id), customer_values.item_name
         ):
             add_customer_values_to_db(int(update.message.from_user.id), customer_values)
