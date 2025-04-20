@@ -3,10 +3,10 @@ from telegram.ext import (
     CommandHandler,
     filters,
     MessageHandler,
+    Application,
 )
-import threading
-from scrape_async import create_asnyc_loop
-from utilities.telegram_command_utils import (
+from scrape_async import background_scraper
+from utils.telegram_command_utils import (
     start_command,
     init_command,
     add_command,
@@ -18,11 +18,19 @@ from utilities.telegram_command_utils import (
     help_command,
     remove_all_command,
 )
-from configurations import TOKEN
+from ebayscraper.src.constants import TOKEN
+import asyncio
+
+
+async def post_init(application: Application):
+    """Create background task after bot initialization."""
+    asyncio.create_task(background_scraper())
+    print("Background scraper task started.")
+
 
 # main method of the telegram bot
 def main_telegram_bot() -> None:
-    application = ApplicationBuilder().token(TOKEN).build()
+    application = ApplicationBuilder().token(TOKEN).post_init(post_init=post_init).build()
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("init", init_command))
     application.add_handler(CommandHandler("add", add_command))
@@ -37,9 +45,4 @@ def main_telegram_bot() -> None:
 
 
 if __name__ == "__main__":
-    # Thread that scrapes data
-    thread = threading.Thread(target=create_asnyc_loop)
-    thread.start()
-    # main method for telegram bot in main thread that polls continuously
     main_telegram_bot()
-    thread.join()

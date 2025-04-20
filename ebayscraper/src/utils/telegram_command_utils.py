@@ -1,10 +1,11 @@
 from telegram.ext import ContextTypes
 from telegram import Update
-from scrape_async import *
+import traceback
 import telegram
-from configurations import TOKEN
-from utilities.utils import parse_item_message, parse_update_message, parse_remove_message
-from utilities.postgres_utils import (
+from ebayscraper.src.constants import TOKEN
+from utils.utils import parse_item_message, parse_update_message, parse_remove_message
+from constants import RADIUS
+from utils.postgres_utils import (
     add_customer_values_to_db,
     user_exists_in_db,
     entry_in_customer_db_exists,
@@ -13,98 +14,100 @@ from utilities.postgres_utils import (
     update_values_in_customer_db,
 )
 
-RADIUS = [5, 10, 20, 30, 50, 100, 150, 200]
 
 # /start command
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print("Got start command")
+    print(f"Got start command from {update.effective_chat.id}")
     await context.bot.send_message(
-        text="Hello! This is the EbayAlerts bot.\nTo get you started, please use the /init command and copy and fill the following message:\n"
-        + "The radius has to be: 5, 10, 20, 30, 50, 100, 150 or 200.\n"
-        + "For example like that:",
         chat_id=update.effective_chat.id,
-    )
-    await context.bot.send_message(
-        text="/init item, pricelimit, location, radius\n" + "/init GTX 1080, 650, Köln, 20",
-        chat_id=update.effective_chat.id,
+        text=f"""Hello! This is the EbayAlerts bot.
+        To get you started, please use the /init command and copy and fill the following message:
+        The radius has to be one of the following values: {RADIUS}.
+        For example like that:
+
+        /init item, pricelimit, location, radius
+        /init GTX 1080, 650, Köln, 20""",
     )
 
 
 # /init command
 async def init_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print("Got init command")
+    print(f"Got init command from {update.effective_chat.id}")
+    customer_values = parse_item_message(int(update.message.from_user.id), update.message.text)
+    if customer_values.radius not in RADIUS:
+        await context.bot.send_message(
+            text=f"The radius has to be: {RADIUS}!",
+            chat_id=update.effective_chat.id,
+        )
+        return
     if not user_exists_in_db(int(update.message.from_user.id)):
-        customer_values = parse_item_message(int(update.message.from_user.id), update.message.text)
-        if customer_values.radius not in RADIUS:
-            await context.bot.send_message(
-                text="The radius has to be: 5, 10, 20, 30, 50, 100, 150 or 200!",
-                chat_id=update.effective_chat.id,
-            )
-        else:
-            add_customer_values_to_db(int(update.message.from_user.id), customer_values)
-            await context.bot.send_message(
-                text="Great it is initialized!",
-                chat_id=update.effective_chat.id,
-            )
+        print(f"User does not exist in db, creating new user for {update.effective_chat.id}")
+        add_customer_values_to_db(int(update.message.from_user.id), customer_values)
+        print(f"Successfully added user {update.effective_chat.id} to db")
+        await context.bot.send_message(
+            text="Great user is initialized!",
+            chat_id=update.effective_chat.id,
+        )
     else:
         await context.bot.send_message(
-            text="You already initialized the bot!\n"
-            + "If you want to add a new item, please use the /add command.\n"
-            + "If you want to remove an item, please use the /remove command.\n"
-            + "If you want to update an item, please use the /update command.\n"
-            + "If you want to list all your items, please use the /list command.\n"
-            + "If you want to remove all your items, please use the /removeall command."
-            + "If you need help, use the /help command.",
+            text="""You already initialized the bot! 
+            If you want to add a new item, please use the /add command.
+            If you want to remove an item, please use the /remove command. 
+            If you want to update an item, please use the /update command. 
+            If you want to list all your items, please use the /list command. 
+            If you want to remove all your items, please use the /removeall command. 
+            If you need help, use the /help command.""",
             chat_id=update.effective_chat.id,
         )
 
 
 # for everything different then a command
 async def no_command_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print("Got no command message")
+    print(f"Got no command message from {update.effective_chat.id}")
     message = "Use some commands to get started!"
     await context.bot.send_message(text=message, chat_id=update.effective_chat.id)
 
 
 # /add command
 async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print("Got add command")
+    print(f"Got add command from {update.effective_chat.id}")
     customer_values = parse_item_message(int(update.message.from_user.id), update.message.text)
     if customer_values == None:
         await context.bot.send_message(
-            text="Please use the following format:\n"
-            + "/add item, pricelimit, location, radius\n"
-            + "/add GTX 1080, 650, Köln, 20",
+            text=(
+                """Please use the following format:
+                "/add item, pricelimit, location, radius
+                "/add GTX 1080, 650, Köln, 20"""
+            ),
             chat_id=update.effective_chat.id,
         )
+        return
+    if customer_values.radius not in RADIUS:
+        await context.bot.send_message(
+            text=f"The radius has to be: {RADIUS}!",
+            chat_id=update.effective_chat.id,
+        )
+        return
+    if not entry_in_customer_db_exists(int(update.message.from_user.id), customer_values.item_name):
+        add_customer_values_to_db(int(update.message.from_user.id), customer_values)
+        await context.bot.send_message(
+            text="Item successfully added!", chat_id=update.effective_chat.id
+        )
     else:
-        if customer_values.radius not in RADIUS:
-            await context.bot.send_message(
-                text="The radius has to be: 5, 10, 20, 30, 50, 100, 150 or 200!",
-                chat_id=update.effective_chat.id,
-            )
-        elif not entry_in_customer_db_exists(
-            int(update.message.from_user.id), customer_values.item_name
-        ):
-            add_customer_values_to_db(int(update.message.from_user.id), customer_values)
-            await context.bot.send_message(
-                text="Item successfully added!", chat_id=update.effective_chat.id
-            )
-        else:
-            await context.bot.send_message(
-                text="Item already exists in your watchlist!", chat_id=update.effective_chat.id
-            )
+        await context.bot.send_message(
+            text="Item already exists in your watchlist!", chat_id=update.effective_chat.id
+        )
 
 
 # /remove command
 async def remove_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print("Got remove command")
+    print(f"Got remove command from {update.effective_chat.id}")
     items = parse_remove_message(update.message.text)
     if items == None:
         await context.bot.send_message(
-            text="Please use the following format:\n"
-            + "/remove item1, item2, item3\n"
-            + "/remove GTX 1080, GTX 1070, GTX 1060",
+            text="""Please use the following format:
+            /remove item1, item2, item3
+            /remove GTX 1080, GTX 1070, GTX 1060""",
             chat_id=update.effective_chat.id,
         )
     else:
@@ -119,7 +122,7 @@ async def remove_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def remove_all_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print("Got remove all command")
+    print(f"Got remove all command from {update.effective_chat.id}")
     remove_customer_values_from_db(int(update.message.from_user.id), None)
     await context.bot.send_message(
         text="All items successfully removed!", chat_id=update.effective_chat.id
@@ -128,7 +131,7 @@ async def remove_all_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 # /list command
 async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print("Got list command")
+    print(f"Got list command from {update.effective_chat.id}")
     items = get_all_items_by_user_from_db(update.effective_chat.id)
     if items == None:
         await context.bot.send_message(
@@ -145,7 +148,7 @@ async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # /update command
 # TODO: Test
 async def update_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print("Got update command")
+    print(f"Got update command from {update.effective_chat.id}")
     list_of_updates = parse_update_message(update.effective_chat.id, update.message.text)
     update_values_in_customer_db(chat_id=update.effective_chat.id, updates=list_of_updates)
     await context.bot.send_message(
@@ -155,7 +158,7 @@ async def update_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Handler if command isn't recognized.
 async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print("Got unknown command")
+    print(f"Got unknown command from {update.effective_chat.id}")
     await context.bot.send_message(
         chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command."
     )
@@ -163,22 +166,27 @@ async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # TODO: Make examples for each command.
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print("Got help command")
+    print(f"Got help command from {update.effective_chat.id}")
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="The following commands are available:\n"
-        + "/start - Start the bot\n"
-        + "/init - Initialize the bot\n"
-        + "/add - Add an item to the watchlist\n"
-        + "/remove - Remove an item from the watchlist"
-        + "/list - List all items in the watchlist\n"
-        + "/update - Update an item in the watchlist\n",
+        text="""The following commands are available:
+        /start - Start the bot
+        /init - Initialize the bot
+        /add - Add an item to the watchlist
+        /remove - Remove an item from the watchlist
+        /list - List all items in the watchlist
+        /update - Update an item in the watchlist""",
     )
 
 
 # /error handler
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    print("Got error")
+    print(f"Got error from {update.effective_chat.id}")
+    print("Error:", context.error)
+    traceback_str = "".join(
+        traceback.format_exception(None, context.error, context.error.__traceback__)
+    )
+    print(traceback_str)
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text="Sorry something went wrong!\nIf you need help, contact the developer or use the /help command.",
@@ -187,6 +195,7 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 # Method to send messages to specific chat_ids, without using a handler
 async def send_notification(chat_id: int, msg: str):
+    print(f"Sending notification to {chat_id}")
     bot = telegram.Bot(token=TOKEN)
     await bot.send_message(
         chat_id=chat_id,

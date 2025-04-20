@@ -1,6 +1,6 @@
 .vscode
 *.sql
-creds.toml
+config.json
 src/explore.py
 # Byte-compiled / optimized / DLL files
 __pycache__/

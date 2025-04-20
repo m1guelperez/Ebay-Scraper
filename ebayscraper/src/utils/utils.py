@@ -1,4 +1,8 @@
 from ebayscraper.src.classes import Customer
+import aiohttp
+import json
+import urllib.parse
+import aiofiles
 
 
 def replace_umlauts(string: str):
@@ -36,9 +40,6 @@ def parse_item_message(chat_id: int, message: str) -> Customer | None:
     )
 
 
-parse_item_message(1, "/add RTX 3080, 600, Jüchen, 50")
-
-
 def parse_update_message(message: str) -> list:
     update_values = message.splitlines()
     updates = []
@@ -62,8 +63,6 @@ def parse_remove_message(message: str) -> list | None:
         return message
 
 
-# parse_remove_message("/remove item1")
-
 # For change offers or items without a price tag, return 0.
 def parse_price_to_float(price: str) -> int:
     cleared_string = ""
@@ -77,3 +76,31 @@ def parse_price_to_float(price: str) -> int:
             return 0
     else:
         return 0
+
+
+async def get_location_id(location: str) -> str | None:
+    async with aiofiles.open("./location_ids.json", "r") as file:
+        content = await file.read()
+        location_ids = json.loads(content)
+    if location in location_ids:
+        print(f"Cache hit for '{location}'")
+        return location_ids[location]
+    async with aiohttp.ClientSession() as session:
+        task = session.get(
+            f"https://www.kleinanzeigen.de/s-ort-empfehlungen.json?query={urllib.parse.quote_plus(location)}"
+        )
+        async with task as response:
+            if response.status == 200:
+                data = await response.json()
+                location_id = str(list(data.keys())[1]).replace(
+                    "_", "l"
+                )  # Get the second key from the dictionary which corresponds to the location. The first is germany.
+                # The locations is returned as _299424, so we need to replace the _ with l.
+                location_ids[location] = location_id
+                content_to_write = json.dumps(location_ids, indent=4, ensure_ascii=False)
+                async with aiofiles.open("./location_ids.json", "w") as file:
+                    await file.write(content_to_write)
+                print(f"Cache updated for '{location}' with ID '{location_id}'")
+                return location_id
+            else:
+                return None
