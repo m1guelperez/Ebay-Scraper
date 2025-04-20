@@ -1,13 +1,14 @@
-import toml
-from typing import MutableMapping
-
-def load_configfile(path: str) -> MutableMapping:
-    return toml.load(path)
+import json
 
 
-TOKEN = load_configfile("./creds.toml")["telegram"]["token"]
-DATABASE_PWD = load_configfile("./creds.toml")["postgres"]["password"]
-DATABASE = load_configfile("./creds.toml")["postgres"]["dbName"]
-HOST = load_configfile("./creds.toml")["postgres"]["host"]
-USER = load_configfile("./creds.toml")["postgres"]["user"]
-PORT = load_configfile("./creds.toml")["postgres"]["port"]
+def load_configfile(path: str) -> dict:
+    return json.load(open(path, "r"))
+
+
+loaded_file = load_configfile("./config.json")
+TOKEN = loaded_file["token"]
+DATABASE_PWD = loaded_file["postgres"]["password"]
+DATABASE = loaded_file["postgres"]["database"]
+HOST = loaded_file["postgres"]["host"]
+USER = loaded_file["postgres"]["user"]
+PORT = loaded_file["postgres"]["port"]
