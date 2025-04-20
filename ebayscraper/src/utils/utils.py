@@ -36,9 +36,6 @@ def parse_item_message(chat_id: int, message: str) -> Customer | None:
     )
 
 
-parse_item_message(1, "/add RTX 3080, 600, Jüchen, 50")
-
-
 def parse_update_message(message: str) -> list:
     update_values = message.splitlines()
     updates = []
@@ -61,8 +58,6 @@ def parse_remove_message(message: str) -> list | None:
             message[item] = message[item].lower().strip().replace(" ", "-")
         return message
 
-
-# parse_remove_message("/remove item1")
 
 # For change offers or items without a price tag, return 0.
 def parse_price_to_float(price: str) -> int:
