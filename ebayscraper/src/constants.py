@@ -13,3 +13,6 @@ DATABASE = loaded_file["postgres"]["database"]
 HOST = loaded_file["postgres"]["host"]
 USER = loaded_file["postgres"]["user"]
 PORT = loaded_file["postgres"]["port"]
+SCRAPE_URL = loaded_file["scrape_url"]
+RADIUS = loaded_file["radius"]
+
