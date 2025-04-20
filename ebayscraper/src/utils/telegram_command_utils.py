@@ -1,6 +1,6 @@
 from telegram.ext import ContextTypes
 from telegram import Update
-from scrape_async import *
+import traceback
 import telegram
 from ebayscraper.src.constants import TOKEN
 from utils.utils import parse_item_message, parse_update_message, parse_remove_message
@@ -33,19 +33,21 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # /init command
 async def init_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print(f"Got init command from {update.effective_chat.id}")
+    customer_values = parse_item_message(int(update.message.from_user.id), update.message.text)
+    if customer_values.radius not in RADIUS:
+        await context.bot.send_message(
+            text=f"The radius has to be: {RADIUS}!",
+            chat_id=update.effective_chat.id,
+        )
+        return
     if not user_exists_in_db(int(update.message.from_user.id)):
-        customer_values = parse_item_message(int(update.message.from_user.id), update.message.text)
-        if customer_values.radius not in RADIUS:
-            await context.bot.send_message(
-                text="The radius has to be: 5, 10, 20, 30, 50, 100, 150 or 200!",
-                chat_id=update.effective_chat.id,
-            )
-        else:
-            add_customer_values_to_db(int(update.message.from_user.id), customer_values)
-            await context.bot.send_message(
-                text="Great it is initialized!",
-                chat_id=update.effective_chat.id,
-            )
+        print(f"User does not exist in db, creating new user for {update.effective_chat.id}")
+        add_customer_values_to_db(int(update.message.from_user.id), customer_values)
+        print(f"Successfully added user {update.effective_chat.id} to db")
+        await context.bot.send_message(
+            text="Great user is initialized!",
+            chat_id=update.effective_chat.id,
+        )
     else:
         await context.bot.send_message(
             text="""You already initialized the bot! 
@@ -79,23 +81,22 @@ async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             ),
             chat_id=update.effective_chat.id,
         )
+        return
+    if customer_values.radius not in RADIUS:
+        await context.bot.send_message(
+            text=f"The radius has to be: {RADIUS}!",
+            chat_id=update.effective_chat.id,
+        )
+        return
+    if not entry_in_customer_db_exists(int(update.message.from_user.id), customer_values.item_name):
+        add_customer_values_to_db(int(update.message.from_user.id), customer_values)
+        await context.bot.send_message(
+            text="Item successfully added!", chat_id=update.effective_chat.id
+        )
     else:
-        if customer_values.radius not in RADIUS:
-            await context.bot.send_message(
-                text="The radius has to be: 5, 10, 20, 30, 50, 100, 150 or 200!",
-                chat_id=update.effective_chat.id,
-            )
-        elif not entry_in_customer_db_exists(
-            int(update.message.from_user.id), customer_values.item_name
-        ):
-            add_customer_values_to_db(int(update.message.from_user.id), customer_values)
-            await context.bot.send_message(
-                text="Item successfully added!", chat_id=update.effective_chat.id
-            )
-        else:
-            await context.bot.send_message(
-                text="Item already exists in your watchlist!", chat_id=update.effective_chat.id
-            )
+        await context.bot.send_message(
+            text="Item already exists in your watchlist!", chat_id=update.effective_chat.id
+        )
 
 
 # /remove command
@@ -181,6 +182,11 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # /error handler
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     print(f"Got error from {update.effective_chat.id}")
+    print("Error:", context.error)
+    traceback_str = "".join(
+        traceback.format_exception(None, context.error, context.error.__traceback__)
+    )
+    print(traceback_str)
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text="Sorry something went wrong!\nIf you need help, contact the developer or use the /help command.",
