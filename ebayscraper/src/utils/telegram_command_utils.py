@@ -2,7 +2,7 @@ from telegram.ext import ContextTypes
 from telegram import Update
 from scrape_async import *
 import telegram
-from configurations import TOKEN
+from ebayscraper.src.constants import TOKEN
 from utils.utils import parse_item_message, parse_update_message, parse_remove_message
 from utils.postgres_utils import (
     add_customer_values_to_db,

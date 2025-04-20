@@ -18,7 +18,7 @@ from utils.telegram_command_utils import (
     help_command,
     remove_all_command,
 )
-from configurations import TOKEN
+from ebayscraper.src.constants import TOKEN
 
 # main method of the telegram bot
 def main_telegram_bot() -> None:
@@ -42,4 +42,3 @@ if __name__ == "__main__":
     thread.start()
     # main method for telegram bot in main thread that polls continuously
     main_telegram_bot()
-    thread.join()

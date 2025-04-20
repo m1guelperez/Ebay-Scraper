@@ -2,7 +2,7 @@ import psycopg2
 import psycopg2.extensions
 from psycopg2.sql import *
 from ebayscraper.src.classes import Customer, ItemFromEbay
-from ebayscraper.src.configurations import DATABASE_PWD, PORT, USER, HOST, DATABASE
+from ebayscraper.src.constants import DATABASE_PWD, PORT, USER, HOST, DATABASE
 
 
 def connect_to_db() -> psycopg2.extensions.connection:
