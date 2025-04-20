@@ -32,7 +32,7 @@ CREATE TABLE items (
     identifier VARCHAR(400),
     price int,
     url VARCHAR(400),
-    date TIMESTAMP,
+    date TIMESTAMP
 )
 ```
 
