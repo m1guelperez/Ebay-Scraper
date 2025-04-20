@@ -6,7 +6,7 @@ from telegram.ext import (
 )
 import threading
 from scrape_async import create_asnyc_loop
-from utilities.telegram_command_utils import (
+from utils.telegram_command_utils import (
     start_command,
     init_command,
     add_command,

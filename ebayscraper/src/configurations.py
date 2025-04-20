@@ -1,8 +1,9 @@
 import json
+from pathlib import Path
 
 
 def load_configfile(path: str) -> dict:
-    return json.load(open(path, "r"))
+    return json.load(open(Path(path).resolve(), "r"))
 
 
 loaded_file = load_configfile("./config.json")

@@ -4,9 +4,9 @@ import aiohttp
 from bs4 import BeautifulSoup
 import datetime
 from classes import ItemFromEbay
-from utilities.utils import parse_price_to_float
-from utilities.telegram_command_utils import send_notification
-from utilities.postgres_utils import fetch_for_scraping, check_if_item_exists_in_db, add_item_to_db
+from utils.utils import parse_price_to_float
+from utils.telegram_command_utils import send_notification
+from utils.postgres_utils import fetch_for_scraping, check_if_item_exists_in_db, add_item_to_db
 
 EBAY_KLEINANZEIGEN = "https://www.ebay-kleinanzeigen.de/s-"
 

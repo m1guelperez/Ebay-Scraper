@@ -3,8 +3,8 @@ from telegram import Update
 from scrape_async import *
 import telegram
 from configurations import TOKEN
-from utilities.utils import parse_item_message, parse_update_message, parse_remove_message
-from utilities.postgres_utils import (
+from utils.utils import parse_item_message, parse_update_message, parse_remove_message
+from utils.postgres_utils import (
     add_customer_values_to_db,
     user_exists_in_db,
     entry_in_customer_db_exists,
