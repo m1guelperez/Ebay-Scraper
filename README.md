@@ -3,9 +3,36 @@
 This script notifies you if a new item of your choice has been published in a specific locatio while considering radius and pricelimit.
 The notification will be send via telegram.
 
-It uses a `Postgres` database to store the information persistent and make fast access available.
+It uses a `Postgres` database to store the information persistent and make fast access possible.
 
 ## Usage
+
+### Config file
+Create a config file in the following format and place it into the root directory.
+```JSON
+{
+    "scrape_url": "https://www.ebay-kleinanzeigen.de/s-",
+    "radius": [
+        5,
+        10,
+        20,
+        30,
+        50,
+        100,
+        150,
+        200
+    ],
+    "token": "TOKEN",
+    "postgres": {
+        "user": "NAME",
+        "password": "PASSWORD",
+        "database": "DB_NAME",
+        "host": "localhost",
+        "port": 5432
+    },
+    "scrape_interval": 90
+}
+```
 
 ### PostgreSQL
 
