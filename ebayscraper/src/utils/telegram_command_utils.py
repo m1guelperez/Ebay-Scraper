@@ -105,7 +105,7 @@ async def remove_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     items = parse_remove_message(update.message.text)
     if items == None:
         await context.bot.send_message(
-            text="""Please use the following format:"
+            text="""Please use the following format:
             /remove item1, item2, item3
             /remove GTX 1080, GTX 1070, GTX 1060""",
             chat_id=update.effective_chat.id,
