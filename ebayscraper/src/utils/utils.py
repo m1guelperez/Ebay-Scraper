@@ -5,7 +5,7 @@ import urllib.parse
 import aiofiles
 
 
-def replace_umlauts(string: str):
+def replace_umlauts(string: str) -> str:
     string = string.replace("ä", "ae")
     string = string.replace("ö", "oe")
     string = string.replace("ü", "ue")
@@ -79,6 +79,7 @@ def parse_price_to_float(price: str) -> int:
 
 
 async def get_location_id(location: str) -> str | None:
+    location = replace_umlauts(location).lower().strip()
     async with aiofiles.open("./location_ids.json", "r") as file:
         content = await file.read()
         location_ids = json.loads(content)
