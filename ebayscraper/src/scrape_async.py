@@ -14,7 +14,7 @@ EBAY_KLEINANZEIGEN = SCRAPE_URL
 
 
 async def async_requests(
-    chat_id: str, item: str, location: str, radius: str
+    chat_id: int, item: str, location: str, radius: str
 ) -> BeautifulSoup | None:
     loc_id = await get_location_id(location)
     if loc_id == None:
