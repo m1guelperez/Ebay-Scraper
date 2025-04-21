@@ -2,6 +2,7 @@ from ebayscraper.src.classes import Customer
 import aiohttp
 import json
 import urllib.parse
+import aiofiles
 
 
 def replace_umlauts(string: str):
@@ -78,9 +79,11 @@ def parse_price_to_float(price: str) -> int:
 
 
 async def get_location_id(location: str) -> str | None:
-    with open("./location_ids.json", "r") as file:
-        location_ids = json.load(file)
+    async with aiofiles.open("./location_ids.json", "r") as file:
+        content = await file.read()
+        location_ids = json.loads(content)
     if location in location_ids:
+        print(f"Cache hit for '{location}'")
         return location_ids[location]
     async with aiohttp.ClientSession() as session:
         task = session.get(
@@ -94,8 +97,10 @@ async def get_location_id(location: str) -> str | None:
                 )  # Get the second key from the dictionary which corresponds to the location. The first is germany.
                 # The locations is returned as _299424, so we need to replace the _ with l.
                 location_ids[location] = location_id
-                with open("./location_ids.json", "w") as file:
-                    json.dump(location_ids, file)
+                content_to_write = json.dumps(location_ids, indent=4, ensure_ascii=False)
+                async with aiofiles.open("./location_ids.json", "w") as file:
+                    await file.write(content_to_write)
+                print(f"Cache updated for '{location}' with ID '{location_id}'")
                 return location_id
             else:
                 return None
