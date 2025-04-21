@@ -65,6 +65,9 @@ async def scrape_data_async(customer: Customer):
         location=customer.location,
         radius=customer.radius,
     )
+    if soup == None:
+        print(f"Scraping failed for {customer.item_name} in {customer.location}.")
+        return
     for entry in soup.find_all("article", {"class": "aditem"}):
         item_from_ebay = find_item_information(entry=entry)
         if not check_if_item_exists_in_db(identifier=item_from_ebay.identifier):
