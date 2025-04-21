@@ -21,12 +21,12 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=f"""Hello! This is the EbayAlerts bot.
-        To get you started, please use the /init command and copy and fill the following message:
-        The radius has to be one of the following values: {RADIUS}.
-        For example like that:
+To get you started, please use the /init command and copy and fill the following message:
+The radius has to be one of the following values: {RADIUS}.
+For example like that:
 
-        /init item, pricelimit, location, radius
-        /init GTX 1080, 650, Köln, 20""",
+/init item, pricelimit, location, radius
+/init GTX 1080, 650, Köln, 20""",
     )
 
 
@@ -51,12 +51,12 @@ async def init_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await context.bot.send_message(
             text="""You already initialized the bot! 
-            If you want to add a new item, please use the /add command.
-            If you want to remove an item, please use the /remove command. 
-            If you want to update an item, please use the /update command. 
-            If you want to list all your items, please use the /list command. 
-            If you want to remove all your items, please use the /removeall command. 
-            If you need help, use the /help command.""",
+If you want to add a new item, please use the /add command.
+If you want to remove an item, please use the /remove command. 
+If you want to update an item, please use the /update command. 
+If you want to list all your items, please use the /list command. 
+If you want to remove all your items, please use the /removeall command. 
+If you need help, use the /help command.""",
             chat_id=update.effective_chat.id,
         )
 
@@ -76,8 +76,8 @@ async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(
             text=(
                 """Please use the following format:
-                "/add item, pricelimit, location, radius
-                "/add GTX 1080, 650, Köln, 20"""
+"/add item, pricelimit, location, radius
+"/add GTX 1080, 650, Köln, 20"""
             ),
             chat_id=update.effective_chat.id,
         )
@@ -106,8 +106,8 @@ async def remove_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if items == None:
         await context.bot.send_message(
             text="""Please use the following format:
-            /remove item1, item2, item3
-            /remove GTX 1080, GTX 1070, GTX 1060""",
+/remove item1, item2, item3
+/remove GTX 1080, GTX 1070, GTX 1060""",
             chat_id=update.effective_chat.id,
         )
     else:
@@ -170,12 +170,12 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text="""The following commands are available:
-        /start - Start the bot
-        /init - Initialize the bot
-        /add - Add an item to the watchlist
-        /remove - Remove an item from the watchlist
-        /list - List all items in the watchlist
-        /update - Update an item in the watchlist""",
+/start - Start the bot
+/init - Initialize the bot
+/add - Add an item to the watchlist
+/remove - Remove an item from the watchlist
+/list - List all items in the watchlist
+/update - Update an item in the watchlist""",
     )
 
 

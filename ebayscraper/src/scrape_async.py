@@ -28,7 +28,7 @@ async def async_requests(
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36 Edg/106.0.1370.47"
     }
     print(
-        f"Scraping data for {item} in {location} with radius {radius} km using the following URL: {EBAY_KLEINANZEIGEN}{location}/{item}/k0{loc_id}{radius}"
+        f"Scraping data for {item} in {location} with radius {radius} km using the following URL: {EBAY_KLEINANZEIGEN}{location}/{item}/k0{loc_id}r{radius}"
     )
     async with aiohttp.ClientSession() as session:
         async with session.get(
@@ -79,8 +79,10 @@ async def scrape_data_async(customer: Customer):
                 print(
                     f"Message sent at: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} to chat_id: {customer.chat_id}"
                 )
-                msg = f"""There is a new offer for: {item_from_ebay.price}€
-                {item_from_ebay.url}"""
+                msg = f"""✨ New Offer Found! ✨
+🏷️ Item: {item_from_ebay.item_name}
+💰 Price: {item_from_ebay.price}€
+🔗 Link: {item_from_ebay.url}"""
                 await send_notification(msg=msg, chat_id=customer.chat_id)
 
 
