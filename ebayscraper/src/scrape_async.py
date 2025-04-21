@@ -38,7 +38,7 @@ async def async_requests(
 
 async def background_scrapper():
     while True:
-        print(f"Scraping data at: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")})")
+        print(f"Scraping data at: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         results = fetch_for_scraping()
         scrape_tasks = []
         for result in results:
