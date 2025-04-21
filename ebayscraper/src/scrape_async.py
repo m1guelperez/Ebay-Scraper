@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 import datetime
 from classes import ItemFromEbay
 from utils.utils import parse_price_to_float, get_location_id
-from constants import SCRAPE_URL
+from constants import SCRAPE_URL, SCRAPE_INTERVAL
 from classes import Customer
 from utils.telegram_command_utils import send_notification
 from utils.postgres_utils import fetch_for_scraping, check_if_item_exists_in_db, add_item_to_db
@@ -36,27 +36,26 @@ async def async_requests(
             return soup
 
 
-# Wrapper function such that we scrape data every 150 seconds
-async def wrap_in_inf_loop():
+async def background_scrapper():
     while True:
         print(f"Scraping data at: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")})")
         results = fetch_for_scraping()
+        scrape_tasks = []
         for result in results:
-            await scrape_data_async(
-                Customer(
-                    chat_id=result[0],
-                    item_name=result[1],
-                    price_limit=result[2],
-                    location=result[3],
-                    radius=result[4],
-                ).chat_id,
+            task = asyncio.create_task(
+                scrape_data_async(
+                    Customer(
+                        chat_id=result[0],
+                        item_name=result[1],
+                        price_limit=result[2],
+                        location=result[3],
+                        radius=result[4],
+                    ),
+                )
             )
-        await asyncio.sleep(120)
-
-
-def create_asnyc_loop():
-    loop = asyncio.new_event_loop()
-    loop.run_until_complete(wrap_in_inf_loop())
+            scrape_tasks.append(task)
+        await asyncio.gather(*scrape_tasks)
+        await asyncio.sleep(SCRAPE_INTERVAL)
 
 
 async def scrape_data_async(customer: Customer):
