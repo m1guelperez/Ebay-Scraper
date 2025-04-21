@@ -114,10 +114,10 @@ async def remove_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         for item in items:
             if entry_in_customer_db_exists(int(update.message.from_user.id), item):
                 remove_customer_values_from_db(int(update.message.from_user.id), item)
-                msg = str(item) + " successfully removed!"
+                msg = f"{item} successfully removed!"
                 await context.bot.send_message(text=msg, chat_id=update.effective_chat.id)
             else:
-                msg = str(item) + " does not exist in your watchlist!"
+                msg = f"{item} does not exist in your watchlist!"
                 await context.bot.send_message(text=msg, chat_id=update.effective_chat.id)
 
 
