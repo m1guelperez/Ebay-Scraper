@@ -5,7 +5,7 @@ from telegram.ext import (
     MessageHandler,
     Application,
 )
-from scrape_async import background_scrapper
+from scrape_async import background_scraper
 from utils.telegram_command_utils import (
     start_command,
     init_command,
@@ -24,7 +24,7 @@ import asyncio
 
 async def post_init(application: Application):
     """Create background task after bot initialization."""
-    asyncio.create_task(background_scrapper())
+    asyncio.create_task(background_scraper())
     print("Background scraper task started.")
 
 

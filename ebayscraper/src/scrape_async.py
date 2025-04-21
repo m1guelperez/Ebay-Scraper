@@ -36,7 +36,7 @@ async def async_requests(
             return soup
 
 
-async def background_scrapper():
+async def background_scraper():
     while True:
         print(f"Scraping data at: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         results = fetch_for_scraping()
