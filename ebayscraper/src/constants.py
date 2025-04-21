@@ -15,4 +15,4 @@ USER = loaded_file["postgres"]["user"]
 PORT = loaded_file["postgres"]["port"]
 SCRAPE_URL = loaded_file["scrape_url"]
 RADIUS = loaded_file["radius"]
-
+SCRAPE_INTERVAL = loaded_file["scrape_interval"]
