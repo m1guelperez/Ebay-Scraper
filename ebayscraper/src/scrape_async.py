@@ -4,7 +4,7 @@ import aiohttp
 from bs4 import BeautifulSoup
 import datetime
 from classes import ItemFromEbay
-from utils.utils import parse_price_to_float, get_location_id
+from utils.utils import parse_price_to_float, get_location_id, replace_umlauts
 from constants import SCRAPE_URL, SCRAPE_INTERVAL
 from classes import Customer
 from utils.telegram_command_utils import send_notification
@@ -16,6 +16,7 @@ EBAY_KLEINANZEIGEN = SCRAPE_URL
 async def async_requests(
     chat_id: int, item: str, location: str, radius: str
 ) -> BeautifulSoup | None:
+    location = replace_umlauts(location).lower().strip().replace(" ", "-")
     loc_id = await get_location_id(location)
     if loc_id == None:
         print(f"Location {location} not found.")
