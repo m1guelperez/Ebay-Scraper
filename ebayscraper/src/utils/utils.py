@@ -64,7 +64,7 @@ def parse_remove_message(message: str) -> list | None:
 
 
 # For change offers or items without a price tag, return 0.
-def parse_price_to_float(price: str) -> int:
+def parse_price_to_int(price: str) -> int:
     cleared_string = ""
     if len(price.strip()) != 0:
         for x in price:
