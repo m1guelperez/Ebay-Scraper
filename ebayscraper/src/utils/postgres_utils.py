@@ -163,6 +163,9 @@ def update_values_in_customer_db(chat_id: int, updates: list):
 # Gets all the data from customer such that we can scrape it
 # TODO: Change database format otherwise it could happen we scrape twice the same item, maybe join the chat_ids with the same characteristics
 def fetch_for_scraping() -> list[tuple]:
+    """
+    Fetches all the data from the customer table in the database
+    """
     conn = connect_to_db()
     cur = conn.cursor()
     cur.execute("""SELECT * FROM customer;""")
