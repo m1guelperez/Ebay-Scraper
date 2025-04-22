@@ -9,7 +9,7 @@ from utils.postgres_utils import (
     add_customer_values_to_db,
     user_exists_in_db,
     entry_in_customer_db_exists,
-    remove_customer_values_from_db,
+    remove_customer_from_db,
     get_all_items_by_user_from_db,
     update_values_in_customer_db,
 )
@@ -113,7 +113,7 @@ async def remove_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         for item in items:
             if entry_in_customer_db_exists(int(update.message.from_user.id), item):
-                remove_customer_values_from_db(int(update.message.from_user.id), item)
+                remove_customer_from_db(int(update.message.from_user.id), item)
                 msg = f"{item} successfully removed!"
                 await context.bot.send_message(text=msg, chat_id=update.effective_chat.id)
             else:
@@ -121,9 +121,9 @@ async def remove_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await context.bot.send_message(text=msg, chat_id=update.effective_chat.id)
 
 
-async def remove_all_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def unsubscribe_and_remove_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print(f"Got remove all command from {update.effective_chat.id}")
-    remove_customer_values_from_db(int(update.message.from_user.id), None)
+    remove_customer_from_db(int(update.message.from_user.id))
     await context.bot.send_message(
         text="All items successfully removed!", chat_id=update.effective_chat.id
     )
