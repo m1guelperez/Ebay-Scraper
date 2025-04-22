@@ -16,7 +16,7 @@ from utils.telegram_command_utils import (
     unknown_command,
     error_handler,
     help_command,
-    remove_all_command,
+    unsubscribe_and_remove_command,
 )
 from ebayscraper.src.constants import TOKEN
 import asyncio
@@ -25,7 +25,7 @@ import asyncio
 async def post_init(application: Application):
     """Create background task after bot initialization."""
     asyncio.create_task(background_scraper())
-    print("Background scraper task started.")
+    print("Background scraper task created.")
 
 
 # main method of the telegram bot
@@ -35,7 +35,7 @@ def main_telegram_bot() -> None:
     application.add_handler(CommandHandler("init", init_command))
     application.add_handler(CommandHandler("add", add_command))
     application.add_handler(CommandHandler("remove", remove_command))
-    application.add_handler(CommandHandler("removeall", remove_all_command))
+    application.add_handler(CommandHandler("unsubscribe", unsubscribe_and_remove_command))
     application.add_handler(CommandHandler("list", list_command))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), no_command_message))
