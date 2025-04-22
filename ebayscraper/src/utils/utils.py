@@ -66,10 +66,15 @@ def parse_remove_message(message: str) -> list | None:
 # For change offers or items without a price tag, return 0.
 def parse_price_to_int(price: str) -> int:
     cleared_string = ""
+    price = price.replace("\n", "").replace(" ", "")
     if len(price.strip()) != 0:
         for x in price:
             if x.isdigit():
                 cleared_string += str(x)
+            if (
+                x == "V" or x == "€"
+            ):  # Old prices are also stored in the string. The price looks like this: "1.650€VB2.000€" and prices without a price tag look like this: "VB"
+                break
         if len(cleared_string) != 0:
             return int(cleared_string)
         else:
