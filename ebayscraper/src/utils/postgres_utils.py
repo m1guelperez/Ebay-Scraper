@@ -1,8 +1,31 @@
+import contextlib
 import psycopg2
 import psycopg2.extensions
 from psycopg2.sql import *
 from ebayscraper.src.classes import Customer, ItemFromEbay
 from ebayscraper.src.constants import DATABASE_PWD, PORT, USER, HOST, DATABASE
+
+
+@contextlib.contextmanager
+def get_db_cursor(commit=False):
+    conn = None
+    cursor = None
+    try:
+        conn = connect_to_db()
+        cursor = conn.cursor()
+        yield cursor  # Provide the cursor to the 'with' block
+        if commit:
+            conn.commit()
+    except psycopg2.Error as e:
+        print(f"Database Error: {e}")
+        if conn:
+            conn.rollback()  # Rollback on error
+        raise
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()  # Ensure connection is always closed
 
 
 def connect_to_db() -> psycopg2.extensions.connection:
@@ -16,118 +39,99 @@ def connect_to_db() -> psycopg2.extensions.connection:
     return conn
 
 
-def close_db_connections(
-    cursor: psycopg2.extensions.cursor, connection: psycopg2.extensions.connection
-):
-    cursor.close()
-    connection.close()
-
-
 def select_all_items_from_db() -> list[tuple]:
-    conn = connect_to_db()
-    cur = conn.cursor()
-    cur.execute("""SELECT * FROM items;""")
-    res_of_sql_exc = cur.fetchall()
-    close_db_connections(cur=cur, connection=conn)
+    with get_db_cursor() as cur:
+        cur.execute("""SELECT * FROM items;""")
+        res_of_sql_exc = cur.fetchall()
     return res_of_sql_exc
 
 
 # Used as initializing for the new customer (/init command in telegram)
 def add_customer_values_to_db(user_id: int, customer: Customer):
-    conn = connect_to_db()
-    cur = conn.cursor()
-    cur.execute(
-        """INSERT INTO customer (chat_id,item_name,item_price_limit,location,radius)
-        VALUES (%s,%s,%s,%s,%s);""",
-        (
-            user_id,
-            customer.item_name,
-            customer.price_limit,
-            customer.location,
-            customer.radius,
-        ),
-    )
-    conn.commit()
-    close_db_connections(cursor=cur, connection=conn)
+    with get_db_cursor(commit=True) as cur:
+        cur.execute(
+            """INSERT INTO customer (chat_id,item_name,item_price_limit,location,radius)
+            VALUES (%s,%s,%s,%s,%s);""",
+            (
+                user_id,
+                customer.item_name,
+                customer.price_limit,
+                customer.location,
+                customer.radius,
+            ),
+        )
 
 
-def remove_customer_values_from_db(chat_id: int, item_name: str):
-    conn = connect_to_db()
-    cur = conn.cursor()
-    cur.execute(
-        """DELETE FROM customer WHERE chat_id = (%s) AND item_name = (%s);""",
-        (chat_id, item_name),
-    )
-    conn.commit()
-    close_db_connections(cursor=cur, connection=conn)
-
-
-def remove_all_items_of_user_from_db(chat_id: int):
-    conn = connect_to_db()
-    cur = conn.cursor()
-    cur.execute("""DELETE FROM customer WHERE chat_id = (%s);""", (chat_id,))
-    conn.commit()
-    close_db_connections(cursor=cur, connection=conn)
+def remove_customer_from_db(chat_id: int):
+    with get_db_cursor(commit=True) as cur:
+        cur.execute(
+            """DELETE FROM customer WHERE chat_id = (%s);""",
+            (chat_id,),
+        )
 
 
 def entry_in_customer_db_exists(chat_id: int, item_name: str) -> bool:
-    conn = connect_to_db()
-    cur = conn.cursor()
-    cur.execute(
-        """SELECT chat_id,item_name FROM customer WHERE chat_id = (%s) AND item_name = (%s);""",
-        (
-            chat_id,
-            item_name,
-        ),
-    )
-    res_of_sql_exc = cur.fetchone()
-    if res_of_sql_exc == None:
-        return False
-    else:
-        return True
+    with get_db_cursor() as cur:
+        cur.execute(
+            """SELECT chat_id,item_name FROM customer WHERE chat_id = (%s) AND item_name = (%s);""",
+            (
+                chat_id,
+                item_name,
+            ),
+        )
+        res_of_sql_exc = cur.fetchone()
+        if res_of_sql_exc == None:
+            return False
+        else:
+            return True
 
 
 def user_exists_in_db(chat_id: int) -> bool:
-    conn = connect_to_db()
-    cur = conn.cursor()
-    cur.execute("""SELECT chat_id FROM customer WHERE chat_id = (%s);""", (chat_id,))
-    res_of_sql_exc = cur.fetchone()
-    if res_of_sql_exc == None:
-        return False
-    else:
-        return True
+    with get_db_cursor() as cur:
+        cur.execute(
+            """SELECT chat_id FROM customer WHERE chat_id = (%s);""",
+            (chat_id,),
+        )
+        res_of_sql_exc = cur.fetchone()
+        if res_of_sql_exc == None:
+            return False
+        else:
+            return True
 
 
 def check_if_item_exists_in_db(identifier: str) -> bool:
-    conn = connect_to_db()
-    cur = conn.cursor()
-    cur.execute("""SELECT identifier FROM items WHERE identifier = (%s);""", (identifier,))
-    res_of_sql_exc = cur.fetchone()
-    if res_of_sql_exc == None:
-        return False
-    else:
-        return True
+    with get_db_cursor() as cur:
+        cur.execute(
+            """SELECT identifier FROM items WHERE identifier = (%s);""",
+            (identifier,),
+        )
+        res_of_sql_exc = cur.fetchone()
+        if res_of_sql_exc == None:
+            return False
+        else:
+            return True
 
 
 def add_item_to_db(item: ItemFromEbay):
-    conn = connect_to_db()
-    cur = conn.cursor()
-    cur.execute(
-        """INSERT INTO items (item_name,identifier,price,url,date)
-        VALUES (%s,%s,%s,%s,%s);""",
-        (item.item_name, item.identifier, item.price, item.url, item.date),
-    )
-    conn.commit()
-    close_db_connections(cursor=cur, connection=conn)
+    with get_db_cursor(commit=True) as cur:
+        cur.execute(
+            """INSERT INTO items (item_name,identifier,price,url,date)
+            VALUES (%s,%s,%s,%s,%s);""",
+            (item.item_name, item.identifier, item.price, item.url, item.date),
+        )
 
 
 def get_all_items_by_user_from_db(chat_id: int):
-    conn = connect_to_db()
-    cur = conn.cursor()
-    cur.execute("""SELECT item_name FROM customer WHERE chat_id = (%s);""", (chat_id,))
-    res_of_sql = cur.fetchall()
-    close_db_connections(cursor=cur, connection=conn)
-    return res_of_sql
+    with get_db_cursor() as cur:
+        cur.execute(
+            """SELECT item_name FROM customer WHERE chat_id = (%s);""",
+            (chat_id,),
+        )
+        res_of_sql = cur.fetchall()
+        if res_of_sql == None:
+            return None
+        else:
+            return res_of_sql
 
 
 # update[0] is the field we want to update in the database and update[1] the new value
@@ -157,7 +161,8 @@ def update_values_in_customer_db(chat_id: int, updates: list):
             ),
         )
         conn.commit()
-        close_db_connections(cursor=cur, connection=conn)
+    conn.close()
+    cur.close()
 
 
 # Gets all the data from customer such that we can scrape it
@@ -166,9 +171,10 @@ def fetch_for_scraping() -> list[tuple]:
     """
     Fetches all the data from the customer table in the database
     """
-    conn = connect_to_db()
-    cur = conn.cursor()
-    cur.execute("""SELECT * FROM customer;""")
-    res_of_sql_exc = cur.fetchall()
-    close_db_connections(cursor=cur, connection=conn)
-    return res_of_sql_exc
+    with get_db_cursor() as cur:
+        cur.execute("""SELECT item_name, item_price_limit, location, radius FROM customer;""")
+        res_of_sql_exc = cur.fetchall()
+        if res_of_sql_exc == None:
+            return None
+        else:
+            return res_of_sql_exc
