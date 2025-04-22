@@ -85,14 +85,16 @@ async def get_location_id(location: str) -> str | None:
     if location in location_ids:
         print(f"Cache hit for '{location}'")
         return location_ids[location]
+    url = f"https://www.kleinanzeigen.de/s-ort-empfehlungen.json?query={urllib.parse.quote_plus(location)}"
     async with aiohttp.ClientSession() as session:
-        task = session.get(
-            f"https://www.kleinanzeigen.de/s-ort-empfehlungen.json?query={urllib.parse.quote_plus(location)}"
-        )
-        async with task as response:
+        async with session.get(url) as response:
             if response.status == 200:
                 data = await response.json()
-                location_id = str(list(data.keys())[1]).replace(
+                keys = list(data.keys())
+                if len(keys) < 2:
+                    print(f"Location '{location}' not found.")
+                    return None
+                location_id = str(keys[1]).replace(
                     "_", "l"
                 )  # Get the second key from the dictionary which corresponds to the location. The first is germany.
                 # The locations is returned as _299424, so we need to replace the _ with l.
@@ -103,4 +105,5 @@ async def get_location_id(location: str) -> str | None:
                 print(f"Cache updated for '{location}' with ID '{location_id}'")
                 return location_id
             else:
+                print(f"Error fetching location ID for '{location}': {response.status}")
                 return None
