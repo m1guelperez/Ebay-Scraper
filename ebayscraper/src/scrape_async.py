@@ -80,7 +80,7 @@ async def scrape_data_async(customer: Customer):
                 print(
                     f"Message sent at: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} to chat_id: {customer.chat_id}"
                 )
-                msg = f"""✨ New Offer Found! ✨
+                msg = f"""✨ New Offer Found for {item_from_ebay.item_name}! ✨
 🏷️ Item: {item_from_ebay.item_name}
 💰 Price: {item_from_ebay.price}€
 🔗 Link: {item_from_ebay.url}"""
