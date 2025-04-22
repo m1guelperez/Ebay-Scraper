@@ -26,6 +26,7 @@ The radius has to be one of the following values: {RADIUS}.
 For example like that:
 
 /init item, pricelimit, location, radius
+for example like:
 /init GTX 1080, 650, Köln, 20""",
     )
 
