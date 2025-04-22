@@ -172,7 +172,7 @@ def fetch_for_scraping() -> list[tuple]:
     Fetches all the data from the customer table in the database
     """
     with get_db_cursor() as cur:
-        cur.execute("""SELECT item_name, item_price_limit, location, radius FROM customer;""")
+        cur.execute("""SELECT * FROM customer;""")
         res_of_sql_exc = cur.fetchall()
         if res_of_sql_exc == None:
             return None
