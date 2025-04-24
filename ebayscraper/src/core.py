@@ -24,7 +24,7 @@ import asyncio
 
 async def post_init(application: Application):
     """Create background task after bot initialization."""
-    asyncio.create_task(background_scraper())
+    asyncio.create_task(background_scraper(application.bot))
     print("Background scraper task created.")
 
 
