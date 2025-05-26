@@ -45,6 +45,10 @@ async def background_scraper(bot: telegram.Bot):
     while True:
         print(f"Scraping data at: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         results = fetch_for_scraping()
+        if not results:
+            print("No customers found for scraping.")
+            await asyncio.sleep(SCRAPE_INTERVAL)
+            continue
         scrape_tasks = []
         for result in results:
             task = asyncio.create_task(

@@ -1,7 +1,7 @@
 import contextlib
 import psycopg2
 import psycopg2.extensions
-from psycopg2.sql import *
+from psycopg2.sql import SQL, Identifier
 from ebayscraper.src.classes import Customer, ItemFromEbay
 from ebayscraper.src.constants import DATABASE_PWD, PORT, USER, HOST, DATABASE
 
@@ -167,7 +167,7 @@ def update_values_in_customer_db(chat_id: int, updates: list):
 
 # Gets all the data from customer such that we can scrape it
 # TODO: Change database format otherwise it could happen we scrape twice the same item, maybe join the chat_ids with the same characteristics
-def fetch_for_scraping() -> list[tuple]:
+def fetch_for_scraping() -> list[tuple] | None:
     """
     Fetches all the data from the customer table in the database
     """

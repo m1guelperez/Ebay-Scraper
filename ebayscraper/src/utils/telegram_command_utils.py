@@ -92,7 +92,8 @@ async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not entry_in_customer_db_exists(int(update.message.from_user.id), customer_values.item_name):
         add_customer_values_to_db(int(update.message.from_user.id), customer_values)
         await context.bot.send_message(
-            text="Item successfully added!", chat_id=update.effective_chat.id
+            text=f"Following items: '{customer_values.item_name.capitalize()}' successfully added!",
+            chat_id=update.effective_chat.id,
         )
     else:
         await context.bot.send_message(
@@ -195,9 +196,8 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 # Method to send messages to specific chat_ids, without using a handler
-async def send_notification(chat_id: int, msg: str):
+async def send_notification(chat_id: int, msg: str, bot: telegram.Bot):
     print(f"Sending notification to {chat_id}")
-    bot = telegram.Bot(token=TOKEN)
     await bot.send_message(
         chat_id=chat_id,
         text=msg,

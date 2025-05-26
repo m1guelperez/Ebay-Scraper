@@ -30,7 +30,7 @@ def parse_item_message(chat_id: int, message: str) -> Customer | None:
     pricelimit = int(characteristics[1].strip())
     location = characteristics[2].strip().lower()
     location = replace_umlauts(location)
-    radius = int(characteristics[3].strip())
+    radius = characteristics[3].strip()
     return Customer(
         chat_id=chat_id,
         item_name=item,
@@ -50,17 +50,18 @@ def parse_update_message(message: str) -> list:
         if isinstance(update, str):
             update = replace_umlauts(update)
         updates.append((value, update))
+    return updates
 
 
 def parse_remove_message(message: str) -> list | None:
-    message = message.split(",")
-    message[0] = str(message[0])[7:]
-    if len(message) < 2:
+    message_as_list = message.split(",")
+    message_as_list[0] = str(message_as_list[0])[7:]
+    if len(message_as_list) < 2:
         return None
     else:
         for item in range(len(message)):
-            message[item] = message[item].lower().strip().replace(" ", "-")
-        return message
+            message_as_list[item] = message[item].lower().strip().replace(" ", "-")
+        return message_as_list
 
 
 # For change offers or items without a price tag, return 0.
