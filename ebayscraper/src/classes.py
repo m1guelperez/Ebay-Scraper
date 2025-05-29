@@ -21,9 +21,9 @@ class Customer:
     item_name: str
     price_limit: int
     location: str
-    radius: str
+    radius: int
 
-    def __init__(self, chat_id: int, item_name: str, price_limit: int, location: str, radius: str):
+    def __init__(self, chat_id: int, item_name: str, price_limit: int, location: str, radius: int):
         self.chat_id = chat_id
         self.item_name = item_name
         self.price_limit = price_limit

@@ -14,7 +14,7 @@ EBAY_KLEINANZEIGEN_URL = SCRAPE_URL
 
 
 async def async_requests(
-    chat_id: int, item: str, location: str, radius: str, bot: telegram.Bot
+    chat_id: int, item: str, location: str, radius: int, bot: telegram.Bot
 ) -> BeautifulSoup | None:
     location = replace_umlauts(location).lower().strip().replace(" ", "-")
     loc_id = await get_location_id(location)
@@ -95,11 +95,11 @@ async def scrape_data_async(customer: Customer, bot: telegram.Bot):
 
 
 # Extract the information for items of a given soup tag and returns an instance of ItemFromEbay that contains all the data
-def find_item_information(entry: element.Tag) -> ItemFromEbay:
+def find_item_information(entry: element.PageElement) -> ItemFromEbay:
     split_string = str(entry["data-href"][11:]).split("/")
     item_name = split_string[0]
     identifier = split_string[1]
-    url = EBAY_KLEINANZEIGEN_URL[: len(EBAY_KLEINANZEIGEN_URL) - 2] + str(entry["data-href"])[1:]
+    url = f"{EBAY_KLEINANZEIGEN_URL[: len(EBAY_KLEINANZEIGEN_URL) - 2]}{entry['data-href'][1:]}"
     price_html = entry.find("p", {"class": "aditem-main--middle--price-shipping--price"})
     if price_html != None:
         price = parse_price_to_int(str(price_html.text.strip()))
