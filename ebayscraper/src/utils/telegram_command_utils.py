@@ -1,9 +1,14 @@
 from telegram.ext import ContextTypes
 from telegram import Update
 import traceback
+from ebayscraper.src.utils.machine_learning import extract_customer_values_from_message
 import telegram
-from ebayscraper.src.constants import TOKEN
-from utils.utils import parse_item_message, parse_update_message, parse_remove_message
+from utils.utils import (
+    parse_item_schema_message,
+    parse_update_message,
+    parse_remove_message,
+    is_schema_format,
+)
 from constants import RADIUS
 from utils.postgres_utils import (
     add_customer_values_to_db,
@@ -27,14 +32,33 @@ For example like that:
 
 /init item, pricelimit, location, radius
 for example like:
-/init GTX 1080, 650, Köln, 20""",
+/init GTX 1080, 650, Köln, 20
+/init Ich suche ein iPhone 12, für 500 Euro, in Berlin in 30 km radius.""",
     )
 
 
 # /init command
 async def init_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print(f"Got init command from {update.effective_chat.id}")
-    customer_values = parse_item_message(int(update.message.from_user.id), update.message.text)
+    if is_schema_format(update.message.text):
+        customer_values = parse_item_schema_message(
+            int(update.message.from_user.id), update.message.text
+        )
+    else:
+        customer_values = extract_customer_values_from_message(
+            chat_id=update.effective_chat.id, chat_message=update.message.text
+        )
+    if customer_values is None:
+        await context.bot.send_message(
+            text=(
+                """Please use the following format:
+"/init item, pricelimit, location, radius
+"/init GTX 1080, 650, Köln, 20
+/init Ich suche ein iPhone 12, für 500 Euro, in Berlin in 30 km radius."""
+            ),
+            chat_id=update.effective_chat.id,
+        )
+        return
     if customer_values.radius not in RADIUS:
         await context.bot.send_message(
             text=f"The radius has to be: {RADIUS}!",
@@ -72,7 +96,14 @@ async def no_command_message(update: Update, context: ContextTypes.DEFAULT_TYPE)
 # /add command
 async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print(f"Got add command from {update.effective_chat.id}")
-    customer_values = parse_item_message(int(update.message.from_user.id), update.message.text)
+    if is_schema_format(update.message.text):
+        customer_values = parse_item_schema_message(
+            int(update.message.from_user.id), update.message.text
+        )
+    else:
+        customer_values = extract_customer_values_from_message(
+            chat_id=update.effective_chat.id, chat_message=update.message.text
+        )
     if customer_values == None:
         await context.bot.send_message(
             text=(
@@ -137,7 +168,8 @@ async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     items = get_all_items_by_user_from_db(update.effective_chat.id)
     if items == None:
         await context.bot.send_message(
-            "You currently have no items added!\nYou can add some using the /add command."
+            text="You currently have no items added!\nYou can add some using the /add command.",
+            chat_id=update.effective_chat.id,
         )
     else:
         msg = ""
@@ -148,7 +180,7 @@ async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # /update command
-# TODO: Test
+# TODO: Rework
 async def update_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print(f"Got update command from {update.effective_chat.id}")
     list_of_updates = parse_update_message(update.effective_chat.id, update.message.text)
@@ -177,7 +209,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 /add - Add an item to the watchlist
 /remove - Remove an item from the watchlist
 /list - List all items in the watchlist
-/update - Update an item in the watchlist""",
+/unsubscribe - Unsubscribe and remove all items from the watchlist""",
     )
 
 
