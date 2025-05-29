@@ -14,7 +14,7 @@ def replace_umlauts(string: str) -> str:
 
 
 # Get values from the incoming telegram message using the /init command
-def parse_item_message(chat_id: int, message: str) -> Customer | None:
+def parse_item_schema_message(chat_id: int, message: str) -> Customer | None:
     characteristics = message.split(",")
     command_end = 0
     # Remove the first element of the list, which is the command itself
@@ -30,7 +30,7 @@ def parse_item_message(chat_id: int, message: str) -> Customer | None:
     pricelimit = int(characteristics[1].strip())
     location = characteristics[2].strip().lower()
     location = replace_umlauts(location)
-    radius = characteristics[3].strip()
+    radius = int(characteristics[3].strip())
     return Customer(
         chat_id=chat_id,
         item_name=item,
@@ -113,3 +113,12 @@ async def get_location_id(location: str) -> str | None:
             else:
                 print(f"Error fetching location ID for '{location}': {response.status}")
                 return None
+
+
+def is_schema_format(string: str) -> bool:
+    """
+    Check if the string is in JSON schema format.
+    """
+    if len(string.split(",")) == 4:
+        return True
+    return False
