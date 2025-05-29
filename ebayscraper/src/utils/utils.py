@@ -1,8 +1,10 @@
 from ebayscraper.src.classes import Customer
 import aiohttp
 import json
+from telegram import Update
 import urllib.parse
 import aiofiles
+from ebayscraper.src.utils.machine_learning import extract_customer_values_with_ml
 
 
 def replace_umlauts(string: str) -> str:
@@ -122,3 +124,16 @@ def is_schema_format(string: str) -> bool:
     if len(string.split(",")) == 4:
         return True
     return False
+
+
+def extract_customer_values(chat_message: str, chat_id: int) -> Customer | None:
+    if is_schema_format(chat_message):
+        customer_values = parse_item_schema_message(chat_id, chat_message)
+    else:
+        customer_values = extract_customer_values_with_ml(
+            chat_id=chat_id, chat_message=chat_message
+        )
+    if customer_values is None:
+        print("Error: Could not extract customer values from message.")
+        return None
+    return customer_values

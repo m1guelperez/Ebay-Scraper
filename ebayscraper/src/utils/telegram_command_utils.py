@@ -1,13 +1,14 @@
 from telegram.ext import ContextTypes
 from telegram import Update
 import traceback
-from ebayscraper.src.utils.machine_learning import extract_customer_values_from_message
+from ebayscraper.src.utils.machine_learning import extract_customer_values_with_ml
 import telegram
 from utils.utils import (
     parse_item_schema_message,
     parse_update_message,
     parse_remove_message,
     is_schema_format,
+    extract_customer_values,
 )
 from constants import RADIUS
 from utils.postgres_utils import (
@@ -22,6 +23,9 @@ from utils.postgres_utils import (
 
 # /start command
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_chat is None:
+        print("Error: effective_chat is None in start_command")
+        return
     print(f"Got start command from {update.effective_chat.id}")
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -39,15 +43,16 @@ for example like:
 
 # /init command
 async def init_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_chat is None:
+        print("Error: effective_chat is None in init_command")
+        return
     print(f"Got init command from {update.effective_chat.id}")
-    if is_schema_format(update.message.text):
-        customer_values = parse_item_schema_message(
-            int(update.message.from_user.id), update.message.text
-        )
-    else:
-        customer_values = extract_customer_values_from_message(
-            chat_id=update.effective_chat.id, chat_message=update.message.text
-        )
+    if update.message is None or update.message.text is None:
+        print("Error: update.message or update.message.text is None in init_command")
+        return
+    customer_values = extract_customer_values(
+        chat_message=update.message.text, chat_id=update.effective_chat.id
+    )
     if customer_values is None:
         await context.bot.send_message(
             text=(
@@ -95,15 +100,13 @@ async def no_command_message(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 # /add command
 async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_chat is None:
+        print("Error: effective_chat is None in add_command")
+        return
     print(f"Got add command from {update.effective_chat.id}")
-    if is_schema_format(update.message.text):
-        customer_values = parse_item_schema_message(
-            int(update.message.from_user.id), update.message.text
-        )
-    else:
-        customer_values = extract_customer_values_from_message(
-            chat_id=update.effective_chat.id, chat_message=update.message.text
-        )
+    customer_values = extract_customer_values(
+        chat_message=update.message.text, chat_id=update.effective_chat.id
+    )
     if customer_values == None:
         await context.bot.send_message(
             text=(
@@ -134,6 +137,9 @@ async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # /remove command
 async def remove_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_chat is None:
+        print("Error: effective_chat is None in remove_command")
+        return
     print(f"Got remove command from {update.effective_chat.id}")
     items = parse_remove_message(update.message.text)
     if items == None:
@@ -155,6 +161,9 @@ async def remove_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def unsubscribe_and_remove_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_chat is None:
+        print("Error: effective_chat is None in unsubscribe_and_remove_command")
+        return
     print(f"Got remove all command from {update.effective_chat.id}")
     remove_customer_from_db(int(update.message.from_user.id))
     await context.bot.send_message(
@@ -164,6 +173,9 @@ async def unsubscribe_and_remove_command(update: Update, context: ContextTypes.D
 
 # /list command
 async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_chat is None:
+        print("Error: effective_chat is None in list_command")
+        return
     print(f"Got list command from {update.effective_chat.id}")
     items = get_all_items_by_user_from_db(update.effective_chat.id)
     if items == None:
@@ -182,6 +194,9 @@ async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # /update command
 # TODO: Rework
 async def update_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_chat is None:
+        print("Error: effective_chat is None in update_command")
+        return
     print(f"Got update command from {update.effective_chat.id}")
     list_of_updates = parse_update_message(update.effective_chat.id, update.message.text)
     update_values_in_customer_db(chat_id=update.effective_chat.id, updates=list_of_updates)
@@ -192,6 +207,9 @@ async def update_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Handler if command isn't recognized.
 async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_chat is None:
+        print("Error: effective_chat is None in unknown_command")
+        return
     print(f"Got unknown command from {update.effective_chat.id}")
     await context.bot.send_message(
         chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command."
@@ -200,6 +218,9 @@ async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # TODO: Make examples for each command.
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_chat is None:
+        print("Error: effective_chat is None in help_command")
+        return
     print(f"Got help command from {update.effective_chat.id}")
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -215,6 +236,9 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # /error handler
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if update.effective_chat is None:
+        print("Error: effective_chat is None in error_handler")
+        return
     print(f"Got error from {update.effective_chat.id}")
     print("Error:", context.error)
     traceback_str = "".join(
