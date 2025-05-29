@@ -83,18 +83,12 @@ llm = Llama(
     model_path="./gemma-2-9b-it-q5_0.gguf",
     n_gpu_layers=-1,  # Use all available GPU memory
     verbose=False,
-    n_ctx=2048,  # Set context length to 2048 tokens
+    n_ctx=2048,
     temperature=0.1,  # Lower temperature for more deterministic output
 )
-# response = llm.create_chat_completion(
-#     messages=messages,
-#     temperature=0,
-#     max_tokens=1024,
-#     stop=["+++"],  # Stop generation when '+++' is encountered
-# )
 
 
-def extract_customer_values_from_message(chat_id: int, chat_message: str) -> Customer | None:
+def extract_customer_values_with_ml(chat_id: int, chat_message: str) -> Customer | None:
     """
     Extracts the JSON content from the assistant's response.
     """
@@ -112,13 +106,13 @@ def extract_customer_values_from_message(chat_id: int, chat_message: str) -> Cus
     if "choices" not in response or len(response["choices"]) == 0:
         print("No response from the model.")
         return None
-    if response["choices"][0]["message"]["content"].strip() == "None":
+    if str(response["choices"][0]["message"]["content"]).strip() == "None":
         print(
             f"Requested information is incomplete or not found for chat_id: {chat_id} with message: {chat_message}"
         )
         return None
     response_as_json = json.loads(
-        response["choices"][0]["message"]["content"].strip().replace("'", '"')
+        str(response["choices"][0]["message"]["content"]).strip().replace("'", '"')
     )
     messages.pop()  # Remove the last user message
     return Customer(
