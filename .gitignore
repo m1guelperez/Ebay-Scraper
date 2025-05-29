@@ -1,5 +1,6 @@
 .vscode
 *.sql
+tokens.txt
 config.json
 src/explore.py
 # Byte-compiled / optimized / DLL files
