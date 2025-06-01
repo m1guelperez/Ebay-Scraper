@@ -10,7 +10,6 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-
 @contextlib.contextmanager
 def get_db_cursor(commit=False):
     conn = None
@@ -72,6 +71,17 @@ def remove_customer_from_db(chat_id: int):
         cur.execute(
             """DELETE FROM customer WHERE chat_id = (%s);""",
             (chat_id,),
+        )
+
+
+def remove_item_from_customer_db(chat_id: int, item_name: str):
+    with get_db_cursor(commit=True) as cur:
+        cur.execute(
+            """DELETE FROM customer WHERE chat_id = (%s) AND item_name = (%s);""",
+            (
+                chat_id,
+                item_name,
+            ),
         )
 
 
