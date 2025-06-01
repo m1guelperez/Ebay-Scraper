@@ -65,7 +65,9 @@ def parse_remove_message(message: str) -> list:
     message_as_list[0] = str(message_as_list[0])[
         7:
     ].strip()  # Remove the '/remove' command from the list.
-    message_as_list = [msg.lower().strip().replace(" ", "-") for msg in message_as_list]
+    message_as_list = [
+        replace_umlauts(msg).lower().strip().replace(" ", "-") for msg in message_as_list
+    ]
     return message_as_list
 
 
