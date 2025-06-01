@@ -71,7 +71,7 @@ async def background_scraper(bot: telegram.Bot):
         await asyncio.gather(*scrape_tasks)
         await asyncio.sleep(SCRAPE_INTERVAL)
 
-
+# Add else case
 async def scrape_data_async(customer: Customer, bot: telegram.Bot):
     soup = await async_requests(
         chat_id=customer.chat_id,
