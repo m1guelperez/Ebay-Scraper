@@ -121,7 +121,7 @@ def extract_customer_values_with_ml(chat_id: int, chat_message: str) -> Customer
     messages.pop()  # Remove the last user message
     return Customer(
         chat_id=chat_id,
-        item_name=response_as_json["name"],
+        item_name=response_as_json["name"].lower().strip(),
         price_limit=int(response_as_json["preis"]),
         location=response_as_json["stadt"].lower().strip(),
         radius=response_as_json["radius"],
