@@ -58,7 +58,7 @@ def parse_update_message(message: str) -> list:
     return updates
 
 
-def parse_remove_message(message: str) -> list:
+def parse_remove_message(message: str) -> list[str]:
     message_as_list = message.split(
         ","
     )  # Because of the '/remove' command, the message is split by commas.

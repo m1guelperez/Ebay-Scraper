@@ -15,6 +15,7 @@ from utils.postgres_utils import (
     remove_customer_from_db,
     get_all_items_by_user_from_db,
     update_values_in_customer_db,
+    remove_item_from_customer_db,
 )
 import logging
 
@@ -157,11 +158,11 @@ async def remove_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         for item in items:
             if entry_in_customer_db_exists(int(update.message.from_user.id), item):
-                remove_customer_from_db(int(update.message.from_user.id), item)
-                msg = f"{item} successfully removed!"
+                remove_item_from_customer_db(int(update.message.from_user.id), item)
+                msg = f"{item.capitalize()} successfully removed!"
                 await context.bot.send_message(text=msg, chat_id=update.effective_chat.id)
             else:
-                msg = f"{item} does not exist in your watchlist!"
+                msg = f"{item.capitalize()} does not exist in your watchlist!"
                 await context.bot.send_message(text=msg, chat_id=update.effective_chat.id)
 
 
@@ -191,7 +192,8 @@ async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         msg = ""
         for item in items:
-            msg += str(item[0] + "\n")
+            logger.info(f"Item found: {item}")
+            msg += item.capitalize() + "\n"
         msg_to_send = "Here is a list of your items:\n" + msg
         await context.bot.send_message(text=msg_to_send, chat_id=update.effective_chat.id)
 

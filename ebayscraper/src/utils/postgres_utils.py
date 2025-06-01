@@ -136,17 +136,14 @@ def add_item_to_db(item: ItemFromEbay):
         )
 
 
-def get_all_items_by_user_from_db(chat_id: int):
+def get_all_items_by_user_from_db(chat_id: int) -> list[str]:
     with get_db_cursor() as cur:
         cur.execute(
             """SELECT item_name FROM customer WHERE chat_id = (%s);""",
             (chat_id,),
         )
         res_of_sql = cur.fetchall()
-        if res_of_sql == None:
-            return None
-        else:
-            return res_of_sql
+    return [res[0] for res in res_of_sql]
 
 
 # update[0] is the field we want to update in the database and update[1] the new value
@@ -182,14 +179,11 @@ def update_values_in_customer_db(chat_id: int, updates: list):
 
 # Gets all the data from customer such that we can scrape it
 # TODO: Change database format otherwise it could happen we scrape twice the same item, maybe join the chat_ids with the same characteristics
-def fetch_for_scraping() -> list[tuple] | None:
+def fetch_for_scraping() -> list[tuple]:
     """
     Fetches all the data from the customer table in the database
     """
     with get_db_cursor() as cur:
         cur.execute("""SELECT * FROM customer;""")
         res_of_sql_exc = cur.fetchall()
-        if res_of_sql_exc == None:
-            return None
-        else:
-            return res_of_sql_exc
+    return res_of_sql_exc
