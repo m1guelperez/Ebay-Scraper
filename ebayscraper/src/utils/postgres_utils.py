@@ -4,6 +4,11 @@ import psycopg2.extensions
 from psycopg2.sql import SQL, Identifier
 from ebayscraper.src.classes import Customer, ItemFromEbay
 from ebayscraper.src.constants import DATABASE_PWD, PORT, USER, HOST, DATABASE
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
 
 
 @contextlib.contextmanager
@@ -17,7 +22,7 @@ def get_db_cursor(commit=False):
         if commit:
             conn.commit()
     except psycopg2.Error as e:
-        print(f"Database Error: {e}")
+        logger.info(f"Database Error: {e}")
         if conn:
             conn.rollback()  # Rollback on error
         raise

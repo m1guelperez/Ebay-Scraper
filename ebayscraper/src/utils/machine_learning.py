@@ -2,6 +2,10 @@ from llama_cpp import Llama
 from pprint import pprint
 import json
 from ebayscraper.src.classes import Customer
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 # unsloth/gemma-2-9b-it
@@ -104,10 +108,10 @@ def extract_customer_values_with_ml(chat_id: int, chat_message: str) -> Customer
         stop=["+++"],  # Stop generation when '+++' is encountered
     )
     if "choices" not in response or len(response["choices"]) == 0:
-        print("No response from the model.")
+        logger.error("No response from the model.")
         return None
     if str(response["choices"][0]["message"]["content"]).strip() == "None":
-        print(
+        logger.error(
             f"Requested information is incomplete or not found for chat_id: {chat_id} with message: {chat_message}"
         )
         return None

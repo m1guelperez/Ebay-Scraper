@@ -1,10 +1,13 @@
 from ebayscraper.src.classes import Customer
 import aiohttp
 import json
-from telegram import Update
 import urllib.parse
 import aiofiles
 from ebayscraper.src.utils.machine_learning import extract_customer_values_with_ml
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 def replace_umlauts(string: str) -> str:
@@ -91,7 +94,7 @@ async def get_location_id(location: str) -> str | None:
         content = await file.read()
         location_ids = json.loads(content)
     if location in location_ids:
-        print(f"Cache hit for '{location}'")
+        logger.info(f"Cache hit for '{location}'")
         return location_ids[location]
     url = f"https://www.kleinanzeigen.de/s-ort-empfehlungen.json?query={urllib.parse.quote_plus(location)}"
     async with aiohttp.ClientSession() as session:
@@ -100,7 +103,7 @@ async def get_location_id(location: str) -> str | None:
                 data = await response.json()
                 keys = list(data.keys())
                 if len(keys) < 2:
-                    print(f"Location '{location}' not found.")
+                    logger.info(f"Location '{location}' not found.")
                     return None
                 location_id = str(keys[1]).replace(
                     "_", "l"
@@ -110,10 +113,10 @@ async def get_location_id(location: str) -> str | None:
                 content_to_write = json.dumps(location_ids, indent=4, ensure_ascii=False)
                 async with aiofiles.open("./location_ids.json", "w") as file:
                     await file.write(content_to_write)
-                print(f"Cache updated for '{location}' with ID '{location_id}'")
+                logger.info(f"Cache updated for '{location}' with ID '{location_id}'")
                 return location_id
             else:
-                print(f"Error fetching location ID for '{location}': {response.status}")
+                logger.error(f"Error fetching location ID for '{location}': {response.status}")
                 return None
 
 
@@ -134,6 +137,6 @@ def extract_customer_values(chat_message: str, chat_id: int) -> Customer | None:
             chat_id=chat_id, chat_message=chat_message
         )
     if customer_values is None:
-        print("Error: Could not extract customer values from message.")
+        logger.error("Error: Could not extract customer values from message.")
         return None
     return customer_values

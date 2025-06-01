@@ -9,6 +9,10 @@ from constants import SCRAPE_URL, SCRAPE_INTERVAL
 from classes import Customer
 from utils.telegram_command_utils import send_notification
 from utils.postgres_utils import fetch_for_scraping, check_if_item_exists_in_db, add_item_to_db
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 EBAY_KLEINANZEIGEN_URL = SCRAPE_URL
 
@@ -19,7 +23,7 @@ async def async_requests(
     location = replace_umlauts(location).lower().strip().replace(" ", "-")
     loc_id = await get_location_id(location)
     if loc_id == None:
-        print(f"Location {location} not found.")
+        logger.info(f"Location {location} not found.")
         await send_notification(
             msg=f"Location {location} not found. Please check the location.",
             chat_id=chat_id,
@@ -29,7 +33,7 @@ async def async_requests(
     header = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36 Edg/106.0.1370.47"
     }
-    print(
+    logger.info(
         f"Scraping data for {item} in {location} with radius {radius} km using the following URL: {EBAY_KLEINANZEIGEN_URL}{location}/{item}/k0{loc_id}r{radius}"
     )
     async with aiohttp.ClientSession() as session:
@@ -43,10 +47,10 @@ async def async_requests(
 
 async def background_scraper(bot: telegram.Bot):
     while True:
-        print(f"Scraping data at: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        logger.info(f"Scraping data at: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         results = fetch_for_scraping()
         if not results:
-            print("No customers found for scraping.")
+            logger.info("No customers found for scraping.")
             await asyncio.sleep(SCRAPE_INTERVAL)
             continue
         scrape_tasks = []
@@ -77,16 +81,14 @@ async def scrape_data_async(customer: Customer, bot: telegram.Bot):
         bot=bot,
     )
     if soup == None:
-        print(f"Scraping failed for {customer.item_name} in {customer.location}.")
+        logger.info(f"Scraping failed for {customer.item_name} in {customer.location}.")
         return
     for entry in soup.find_all("article", {"class": "aditem"}):
         item_from_ebay = find_item_information(entry=entry)
         if not check_if_item_exists_in_db(identifier=item_from_ebay.identifier):
             add_item_to_db(item_from_ebay)
             if item_from_ebay.price <= customer.price_limit:
-                print(
-                    f"Message sent at: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} to chat_id: {customer.chat_id}"
-                )
+                logger.info(f"Message sent to chat_id: {customer.chat_id}")
                 msg = f"""✨ New Offer Found for {item_from_ebay.item_name}! ✨
 🏷️ Item: {item_from_ebay.item_name}
 💰 Price: {item_from_ebay.price}€
