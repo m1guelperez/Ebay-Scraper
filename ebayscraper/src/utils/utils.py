@@ -58,15 +58,15 @@ def parse_update_message(message: str) -> list:
     return updates
 
 
-def parse_remove_message(message: str) -> list | None:
-    message_as_list = message.split(",")
-    message_as_list[0] = str(message_as_list[0])[7:]
-    if len(message_as_list) < 2:
-        return None
-    else:
-        for item in range(len(message)):
-            message_as_list[item] = message[item].lower().strip().replace(" ", "-")
-        return message_as_list
+def parse_remove_message(message: str) -> list:
+    message_as_list = message.split(
+        ","
+    )  # Because of the '/remove' command, the message is split by commas.
+    message_as_list[0] = str(message_as_list[0])[
+        7:
+    ].strip()  # Remove the '/remove' command from the list.
+    message_as_list = [msg.lower().strip().replace(" ", "-") for msg in message_as_list]
+    return message_as_list
 
 
 # For change offers or items without a price tag, return 0.
