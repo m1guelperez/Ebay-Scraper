@@ -148,7 +148,7 @@ async def remove_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     logger.info(f"Got remove command from {update.effective_chat.id}")
     items = parse_remove_message(update.message.text)
-    if items == None:
+    if not items:
         await context.bot.send_message(
             text="""Please use the following format:
 /remove item1, item2, item3
@@ -184,7 +184,7 @@ async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     logger.info(f"Got list command from {update.effective_chat.id}")
     items = get_all_items_by_user_from_db(update.effective_chat.id)
-    if items == None:
+    if not items:
         await context.bot.send_message(
             text="You currently have no items added!\nYou can add some using the /add command.",
             chat_id=update.effective_chat.id,
