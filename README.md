@@ -43,7 +43,7 @@ The customer table looks like that:
 
 ```SQL
 CREATE TABLE customer (
-    chat_id int,
+    chat_id BIGINT,
     item_name VARCHAR(400),
     item_price_limit int,
     location VARCHAR(400),
