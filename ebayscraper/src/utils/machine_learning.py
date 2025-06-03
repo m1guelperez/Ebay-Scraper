@@ -19,7 +19,7 @@ messages = [
         "Die Sätze müssen die Informationen 'Name', 'Preis', 'Stadt' und 'Radius' enthalten und diese müssen extrahier werden. Wenn eine der Informationen fehlt antworte nur 'None'. "
         "Alle weiteren Informationen können ignoriert werden. "
         "Die Informationen sollen in einem validen JSON-Format innerhalb von einer Antwort zurückgegeben werden. "
-        "Beende deine Antwort mit +++.",
+        "Beende deine Antwort immer mit +++.",
     },
     {
         "role": "assistant",
