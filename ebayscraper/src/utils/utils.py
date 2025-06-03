@@ -57,9 +57,9 @@ def parse_remove_message(message: str) -> list[str]:
     message_as_list = message.split(
         ","
     )  # Because of the '/remove' command, the message is split by commas.
-    message_as_list[0] = str(message_as_list[0])[
-        7:
-    ].strip()  # Remove the '/remove' command from the list.
+    message_as_list[0] = (
+        message_as_list[0].strip().split()[1].strip()
+    )  # Remove the '/remove' command from the list.
     message_as_list = [
         replace_umlauts(msg).lower().strip().replace(" ", "-") for msg in message_as_list
     ]
@@ -80,10 +80,7 @@ def parse_price_to_int(price: str) -> int:
                 break
         if len(cleared_string) != 0:
             return int(cleared_string)
-        else:
-            return 0
-    else:
-        return 0
+    return 0
 
 
 async def get_location_id(location: str) -> str | None:
