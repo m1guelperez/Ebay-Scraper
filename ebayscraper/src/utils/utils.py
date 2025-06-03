@@ -128,8 +128,10 @@ def is_schema_format(string: str) -> bool:
 
 def extract_customer_values(chat_message: str, chat_id: int) -> Customer | None:
     if is_schema_format(chat_message):
+        logger.info("Using schema format to extract customer values.")
         customer_values = parse_item_schema_message(chat_id, chat_message)
     else:
+        logger.info("Using machine learning model to extract customer values.")
         customer_values = extract_customer_values_with_ml(
             chat_id=chat_id, chat_message=chat_message
         )
