@@ -18,12 +18,12 @@ messages = [
         "content": "Du bist ein Assistent der Informationen aus Sätzen extrahiert welche eigenschaften von Inseraten beschreiben. "
         "Die Sätze müssen die Informationen 'Name', 'Preis', 'Stadt' und 'Radius' enthalten und diese müssen extrahier werden. Wenn eine der Informationen fehlt antworte nur 'None'. "
         "Alle weiteren Informationen können ignoriert werden. "
-        "Die Informationen sollen in einem JSON-Format innerhalb von einer Antwort zurückgegeben werden. "
+        "Die Informationen sollen in einem validen JSON-Format innerhalb von einer Antwort zurückgegeben werden. "
         "Beende deine Antwort mit +++.",
     },
     {
         "role": "assistant",
-        "content": "Verstanden! Ich werde die Informationen als JSON Format zurückgeben. ",
+        "content": "Verstanden! Ich werde die Informationen als valides JSON-Format zurückgeben.",
     },
     {
         "role": "user",
@@ -110,14 +110,26 @@ def extract_customer_values_with_ml(chat_id: int, chat_message: str) -> Customer
     if "choices" not in response or len(response["choices"]) == 0:
         logger.error("No response from the model.")
         return None
-    if str(response["choices"][0]["message"]["content"]).strip() == "None":
+    if str(response["choices"][0]["message"]["content"]).strip().removeprefix("+++") == "None":
         logger.error(
             f"Requested information is incomplete or not found for chat_id: {chat_id} with message: {chat_message}"
         )
         return None
-    response_as_json = json.loads(
-        str(response["choices"][0]["message"]["content"]).strip().replace("'", '"')
-    )
+    try:
+        response_as_json = json.loads(
+            str(response["choices"][0]["message"]["content"])
+            .strip()
+            .removesuffix("+++")
+            .replace("'", '"')
+        )
+    except Exception as e:
+        logger.error(f"Error when trying to convert to JSON: {e}")
+        logger.error(
+            f"Response content that led to an error: {response['choices'][0]['message']['content']}"
+        )
+        messages.pop()  # Remove the last user message in case of error
+        return None
+
     messages.pop()  # Remove the last user message
     return Customer(
         chat_id=chat_id,
