@@ -15,6 +15,9 @@ class ItemFromEbay:
         self.url = url
         self.date = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
 
+    def __repr__(self) -> str:
+        return f"ItemFromEbay(item_name='{self.item_name}', identifier='{self.identifier}', url='{self.url}', price={self.price}, date={self.date})"
+
 
 class Customer:
     chat_id: int
@@ -29,3 +32,6 @@ class Customer:
         self.price_limit = price_limit
         self.location = location
         self.radius = radius
+
+    def __repr__(self) -> str:
+        return f"Customer(chat_id={self.chat_id}, item_name='{self.item_name}', price_limit={self.price_limit}, location='{self.location}', radius={self.radius})"
