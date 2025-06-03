@@ -20,22 +20,17 @@ def replace_umlauts(string: str) -> str:
 
 # Get values from the incoming telegram message using the /init command
 def parse_item_schema_message(chat_id: int, message: str) -> Customer | None:
-    characteristics = message.split(",")
-    command_end = 0
-    # Remove the first element of the list, which is the command itself
-    for i in characteristics[0]:
-        command_end += 1
-        if i == " ":
-            break
-    characteristics[0] = str(characteristics[0])[command_end:]
-    if len(characteristics) < 4:
+    message_parts = message.split(",")
+    # Remove the command part from the message
+    message_parts[0] = message_parts[0].strip().split(" ")[1].strip()
+    if len(message_parts) < 4:
         return None
-    item = characteristics[0].strip().lower().replace(" ", "-")
+    item = message_parts[0].strip().lower().replace(" ", "-")
     item = replace_umlauts(item)
-    pricelimit = int(characteristics[1].strip())
-    location = characteristics[2].strip().lower()
+    pricelimit = int(message_parts[1].strip())
+    location = message_parts[2].strip().lower()
     location = replace_umlauts(location)
-    radius = int(characteristics[3].strip())
+    radius = int(message_parts[3].strip())
     return Customer(
         chat_id=chat_id,
         item_name=item,
