@@ -39,7 +39,7 @@ Create a config file in the following format and place it into the root director
 Install `PostgreSQL` on your machine and configure it to your needs.
 Enter your credentials for the database in a `creds.toml` file in the root directory. The current tables are called `users`, `search_criteria`, `items` and `notifications_sent` are hardcoded in the source code.
 
-The users table looks like that:
+The `users` table looks like:
 
 ```SQL
 CREATE TABLE users (
@@ -49,7 +49,7 @@ CREATE TABLE users (
 );
 ```
 
-And the search_criteria table looks like that:
+The `search_criteria` table looks like:
 
 ```SQL
 CREATE TABLE search_criteria (
@@ -64,6 +64,7 @@ CREATE TABLE search_criteria (
 );
 ```
 
+The `items` table looks like:
 ```SQL
 CREATE TABLE items (
     item_id SERIAL PRIMARY KEY, -- A unique internal ID for the item
@@ -76,6 +77,7 @@ CREATE TABLE items (
 );
 ```
 
+The `notifications_sent` table looks like:
 ```SQL
 CREATE TABLE notifications_sent (
     notification_id SERIAL PRIMARY KEY,
