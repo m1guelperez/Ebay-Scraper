@@ -37,30 +37,53 @@ Create a config file in the following format and place it into the root director
 ### PostgreSQL
 
 Install `PostgreSQL` on your machine and configure it to your needs.
-Enter your credentials for the database in a `creds.toml` file in the root directory. the current tables are called `customer` and `items` and are hardcoded in the source code.
+Enter your credentials for the database in a `creds.toml` file in the root directory. The current tables are called `users`, `search_criteria`, `items` and `notifications_sent` are hardcoded in the source code.
 
-The customer table looks like that:
+The users table looks like that:
 
 ```SQL
-CREATE TABLE customer (
-    chat_id BIGINT,
-    item_name VARCHAR(400),
-    item_price_limit int,
-    location VARCHAR(400),
-    radius int
-)
+CREATE TABLE users (
+    chat_id BIGINT PRIMARY KEY,
+    -- You could add other user-specific info here, like username, registration_date, etc.
+    first_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 ```
 
-And the items table looks like that:
+And the search_criteria table looks like that:
+
+```SQL
+CREATE TABLE search_criteria (
+    search_id SERIAL PRIMARY KEY, -- A unique ID for each search request
+    chat_id BIGINT NOT NULL REFERENCES users(chat_id), -- Foreign key to users table
+    item_name_query VARCHAR(400) NOT NULL, -- The user's search term
+    item_price_limit INT,
+    location VARCHAR(400),
+    radius INT,
+    is_active BOOLEAN DEFAULT TRUE, -- So users can pause/delete searches
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
 
 ```SQL
 CREATE TABLE items (
-    item_name VARCHAR(400),
-    identifier VARCHAR(400),
-    price int,
+    item_id SERIAL PRIMARY KEY, -- A unique internal ID for the item
+    ebay_identifier VARCHAR(400) UNIQUE NOT NULL, -- The unique ID from eBay
+    item_name_actual VARCHAR(400), -- The actual name of the item from eBay
+    price INT,
     url VARCHAR(400),
-    date TIMESTAMP
-)
+    scraped_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- When this item was first scraped
+    last_seen_date TIMESTAMP -- Optional: update if you re-scrape and find it again
+);
+```
+
+```SQL
+CREATE TABLE notifications_sent (
+    notification_id SERIAL PRIMARY KEY,
+    search_id INT NOT NULL REFERENCES search_criteria(search_id),
+    item_id INT NOT NULL REFERENCES items(item_id),
+    notified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_search_item UNIQUE (search_id, item_id) -- Ensures a user is notified only once per item for a specific search
+);
 ```
 
 ### Script
