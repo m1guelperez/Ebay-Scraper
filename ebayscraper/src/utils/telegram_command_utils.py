@@ -69,25 +69,28 @@ async def init_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             chat_id=update.effective_chat.id,
         )
         return
-    if not user_exists_in_db(int(update.message.from_user.id)):
-        logger.info(f"User does not exist in db, creating new user for {update.effective_chat.id}")
-        add_user_to_db(int(update.message.from_user.id))
-        logger.info(f"Successfully added user {update.effective_chat.id} to db")
+    rows_affected = add_user_to_db(
+        int(update.message.from_user.id)
+    )  # The method handles the case if the user already exists in the db.
+    if rows_affected == 0:
+        logger.info(f"User {update.effective_chat.id} already exists in db, skipping adding to db")
         await context.bot.send_message(
-            text="Great user is initialized!",
+            text="""You already initialized the bot!
+    If you want to add a new item, please use the /add command.
+    If you want to remove an item, please use the /remove command.
+    If you want to update an item, please use the /update command.
+    If you want to list all your items, please use the /list command.
+    If you want to remove all your items, please use the /removeall command.
+    If you need help, use the /help command.""",
             chat_id=update.effective_chat.id,
         )
     else:
-        await context.bot.send_message(
-            text="""You already initialized the bot! 
-If you want to add a new item, please use the /add command.
-If you want to remove an item, please use the /remove command. 
-If you want to update an item, please use the /update command. 
-If you want to list all your items, please use the /list command. 
-If you want to remove all your items, please use the /removeall command. 
-If you need help, use the /help command.""",
-            chat_id=update.effective_chat.id,
-        )
+        logger.info(f"Successfully user {update.effective_chat.id} added to db")
+    logger.info(f"Successfully added user {update.effective_chat.id} to db")
+    await context.bot.send_message(
+        text="Great user is initialized!",
+        chat_id=update.effective_chat.id,
+    )
 
 
 # for everything different then a command

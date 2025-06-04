@@ -52,7 +52,7 @@ def select_all_items_from_db() -> list[tuple]:
 
 
 # Used as initializing for the new customer (/init command in telegram)
-def add_user_to_db(user_id: int):
+def add_user_to_db(user_id: int) -> int:
     with get_db_cursor(commit=True) as cur:
         cur.execute(
             f"""INSERT INTO {Tables.USERS} (chat_id)
@@ -60,6 +60,7 @@ def add_user_to_db(user_id: int):
                ON CONFLICT (chat_id) DO NOTHING;""",
             (user_id,),
         )
+        return cur.rowcount
 
 
 def remove_customer_from_db(chat_id: int):
