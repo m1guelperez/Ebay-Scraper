@@ -1,4 +1,4 @@
-from ebayscraper.src.classes import Customer
+from ebayscraper.src.classes import User
 import aiohttp
 import json
 import urllib.parse
@@ -19,7 +19,7 @@ def replace_umlauts(string: str) -> str:
 
 
 # Get values from the incoming telegram message using the /init command
-def parse_item_schema_message(chat_id: int, message: str) -> Customer | None:
+def parse_item_schema_message(chat_id: int, message: str) -> User | None:
     message_parts = message.split(",")
     # Remove the command part from the message
     message_parts[0] = message_parts[0].strip().split(" ")[1].strip()
@@ -31,7 +31,7 @@ def parse_item_schema_message(chat_id: int, message: str) -> Customer | None:
     location = message_parts[2].strip().lower()
     location = replace_umlauts(location)
     radius = int(message_parts[3].strip())
-    return Customer(
+    return User(
         chat_id=chat_id,
         item_name=item,
         price_limit=pricelimit,
@@ -123,7 +123,7 @@ def is_schema_format(string: str) -> bool:
     return False
 
 
-def extract_customer_values(chat_message: str, chat_id: int) -> Customer | None:
+def extract_customer_values(chat_message: str, chat_id: int) -> User | None:
     if is_schema_format(chat_message):
         logger.info("Using schema format to extract customer values.")
         customer_values = parse_item_schema_message(chat_id, chat_message)

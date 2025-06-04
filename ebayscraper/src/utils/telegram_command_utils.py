@@ -49,9 +49,6 @@ async def init_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error("Error: effective_chat is None in init_command")
         return
     logger.info(f"Got init command from {update.effective_chat.id}")
-    if update.message is None or update.message.text is None:
-        logger.error("Error: update.message or update.message.text is None in init_command")
-        return
     customer_values = extract_customer_values(
         chat_message=update.message.text, chat_id=update.effective_chat.id
     )

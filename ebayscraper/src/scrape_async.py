@@ -6,7 +6,7 @@ import datetime
 from classes import ItemFromEbay
 from utils.utils import parse_price_to_int, get_location_id, replace_umlauts
 from constants import SCRAPE_URL, SCRAPE_INTERVAL
-from classes import Customer
+from classes import User
 from utils.telegram_command_utils import send_notification
 from utils.postgres_utils import fetch_for_scraping, check_if_item_exists_in_db, add_item_to_db
 import logging
@@ -57,7 +57,7 @@ async def background_scraper(bot: telegram.Bot):
         for result in results:
             task = asyncio.create_task(
                 scrape_data_async(
-                    customer=Customer(
+                    customer=User(
                         chat_id=result[0],
                         item_name=result[1],
                         price_limit=result[2],
@@ -71,8 +71,9 @@ async def background_scraper(bot: telegram.Bot):
         await asyncio.gather(*scrape_tasks)
         await asyncio.sleep(SCRAPE_INTERVAL)
 
+
 # Add else case
-async def scrape_data_async(customer: Customer, bot: telegram.Bot):
+async def scrape_data_async(customer: User, bot: telegram.Bot):
     soup = await async_requests(
         chat_id=customer.chat_id,
         item=customer.item_name,

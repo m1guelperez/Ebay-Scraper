@@ -15,7 +15,7 @@ class ItemFromEbay:
 
 
 @dataclass(slots=True)
-class Customer:
+class User:
     chat_id: int
     item_name: str
     price_limit: int

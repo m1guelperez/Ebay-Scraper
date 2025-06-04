@@ -3,7 +3,7 @@ import psycopg2
 import psycopg2.extensions
 from datetime import datetime
 from psycopg2.sql import SQL, Identifier
-from ebayscraper.src.classes import Customer, ItemFromEbay
+from ebayscraper.src.classes import User, ItemFromEbay
 from ebayscraper.src.constants import DATABASE_PWD, PORT, USER, HOST, DATABASE, Tables
 import logging
 
