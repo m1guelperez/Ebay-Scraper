@@ -1,9 +1,10 @@
 import contextlib
 import psycopg2
 import psycopg2.extensions
+from datetime import datetime
 from psycopg2.sql import SQL, Identifier
 from ebayscraper.src.classes import Customer, ItemFromEbay
-from ebayscraper.src.constants import DATABASE_PWD, PORT, USER, HOST, DATABASE
+from ebayscraper.src.constants import DATABASE_PWD, PORT, USER, HOST, DATABASE, Tables
 import logging
 
 logger = logging.getLogger(__name__)
@@ -45,32 +46,38 @@ def connect_to_db() -> psycopg2.extensions.connection:
 
 def select_all_items_from_db() -> list[tuple]:
     with get_db_cursor() as cur:
-        cur.execute("""SELECT * FROM items;""")
+        cur.execute(f"""SELECT * FROM {Tables.ITEMS};""")
         res_of_sql_exc = cur.fetchall()
     return res_of_sql_exc
 
 
 # Used as initializing for the new customer (/init command in telegram)
-def add_customer_values_to_db(user_id: int, customer: Customer):
+def add_user_to_db(user_id: int):
     with get_db_cursor(commit=True) as cur:
         cur.execute(
-            """INSERT INTO customer (chat_id,item_name,item_price_limit,location,radius)
-            VALUES (%s,%s,%s,%s,%s);""",
-            (
-                user_id,
-                customer.item_name,
-                customer.price_limit,
-                customer.location,
-                customer.radius,
-            ),
+            f"""INSERT INTO {Tables.USERS} (chat_id)
+               VALUES (%s)
+               ON CONFLICT (chat_id) DO NOTHING;""",
+            (user_id,),
         )
 
 
 def remove_customer_from_db(chat_id: int):
     with get_db_cursor(commit=True) as cur:
         cur.execute(
-            """DELETE FROM customer WHERE chat_id = (%s);""",
+            f"""DELETE FROM {Tables.USERS} WHERE chat_id = (%s);""",
             (chat_id,),
+        )
+
+
+def add_notification_sent(chat_id: int, item_name: str):
+    with get_db_cursor(commit=True) as cur:
+        cur.execute(
+            f"""UPDATE customer SET notification_sent = TRUE WHERE chat_id = (%s) AND item_name = (%s);""",
+            (
+                chat_id,
+                item_name,
+            ),
         )
 
 

@@ -9,7 +9,7 @@ from utils.utils import (
 )
 from constants import RADIUS
 from utils.postgres_utils import (
-    add_customer_values_to_db,
+    add_user_to_db,
     user_exists_in_db,
     entry_in_customer_db_exists,
     remove_customer_from_db,
@@ -74,7 +74,7 @@ async def init_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     if not user_exists_in_db(int(update.message.from_user.id)):
         logger.info(f"User does not exist in db, creating new user for {update.effective_chat.id}")
-        add_customer_values_to_db(int(update.message.from_user.id), customer_values)
+        add_user_to_db(int(update.message.from_user.id))
         logger.info(f"Successfully added user {update.effective_chat.id} to db")
         await context.bot.send_message(
             text="Great user is initialized!",
@@ -129,7 +129,7 @@ async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
     if not entry_in_customer_db_exists(int(update.message.from_user.id), customer_values.item_name):
-        add_customer_values_to_db(int(update.message.from_user.id), customer_values)
+        add_user_to_db(int(update.message.from_user.id))
         await context.bot.send_message(
             text=f"'{customer_values.item_name.capitalize()}' with a price limit of {customer_values.price_limit}€ and a radius of {customer_values.radius} km in {customer_values.location} successfully added to your watchlist!",
             chat_id=update.effective_chat.id,
