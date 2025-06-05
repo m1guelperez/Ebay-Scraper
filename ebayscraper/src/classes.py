@@ -17,7 +17,6 @@ class Item:
 
     @classmethod
     def from_db(cls, item_tuple: tuple) -> Self:
-        print(f"Creating Item from DB tuple: {item_tuple}")
         return cls(
             item_id=item_tuple[0],
             identifier=item_tuple[1],
