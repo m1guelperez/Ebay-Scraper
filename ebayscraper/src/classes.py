@@ -53,6 +53,12 @@ class SearchRequest:
             f"Radius: {self.radius} km"
         )
 
+    def __post_init__(self) -> None:
+        self.item_name = self.item_name.lower().replace(" ", "-")
+
+    def overview_in_message(self) -> str:
+        return f"{self.item_name.capitalize()} for {self.price_limit} EUR in {self.location.capitalize()} within {self.radius} km Radius\n"
+
     @classmethod
     def from_db(cls, search_tuple: tuple) -> Self:
         return cls(
