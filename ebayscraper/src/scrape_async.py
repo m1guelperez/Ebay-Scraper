@@ -10,7 +10,7 @@ from classes import SearchRequest, Item
 from utils.telegram_command_utils import send_notification
 from utils.postgres_utils import (
     fetch_for_scraping,
-    get_item_from_db,
+    get_item_via_id_from_db,
     check_if_notification_already_sent_db,
     add_item_to_db,
     add_notification_sent_db,
@@ -87,7 +87,7 @@ async def scrape_data_async(search_request: SearchRequest, bot: telegram.Bot):
     for entry in soup.find_all("article", {"class": "aditem"}):
         db_item_id = None
         item_from_ebay = find_item_information(entry=entry)
-        existing_item = get_item_from_db(identifier=item_from_ebay.identifier)
+        existing_item = get_item_via_id_from_db(identifier=item_from_ebay.identifier)
         if not existing_item:
             db_item_id = add_item_to_db(item_from_ebay)
             logger.info(
