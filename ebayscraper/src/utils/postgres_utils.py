@@ -1,9 +1,8 @@
 import contextlib
 import psycopg2
 import psycopg2.extensions
-from datetime import datetime
 from psycopg2.sql import SQL, Identifier
-from ebayscraper.src.classes import User, ItemFromEbay
+from ebayscraper.src.classes import Item, SearchRequest
 from ebayscraper.src.constants import DATABASE_PWD, PORT, USER, HOST, DATABASE, Tables
 import logging
 
@@ -52,13 +51,17 @@ def select_all_items_from_db() -> list[tuple]:
 
 
 # Used as initializing for the new customer (/init command in telegram)
-def add_user_to_db(user_id: int) -> int:
+def add_user_to_db(chat_id: int) -> int:
+    """
+    Adds a new user to the database.
+    If the user already exists, it does nothing.
+    """
     with get_db_cursor(commit=True) as cur:
         cur.execute(
             f"""INSERT INTO {Tables.USERS} (chat_id)
                VALUES (%s)
                ON CONFLICT (chat_id) DO NOTHING;""",
-            (user_id,),
+            (chat_id,),
         )
         return cur.rowcount
 
@@ -69,23 +72,74 @@ def remove_customer_from_db(chat_id: int):
             f"""DELETE FROM {Tables.USERS} WHERE chat_id = (%s);""",
             (chat_id,),
         )
+        res_of_sql_exc = cur.rowcount
+    if res_of_sql_exc == 0:
+        logger.info(f"No user with chat_id {chat_id} found in database.")
+    else:
+        logger.info(f"User with chat_id {chat_id} removed from database.")
 
 
-def add_notification_sent(chat_id: int, item_name: str):
+def add_notification_sent_db(search_id: int, item_id: int):
     with get_db_cursor(commit=True) as cur:
         cur.execute(
-            f"""UPDATE customer SET notification_sent = TRUE WHERE chat_id = (%s) AND item_name = (%s);""",
+            f"""INSERT INTO {Tables.NOTIFICATIONS} (search_id, item_id)
+            VALUES (%s, %s)
+            ON CONFLICT (search_id, item_id) DO NOTHING;""",
             (
-                chat_id,
-                item_name,
+                search_id,
+                item_id,
             ),
         )
 
 
-def remove_item_from_customer_db(chat_id: int, item_name: str):
+def add_search_request_db(chat_id: int, search_request: SearchRequest) -> int:
+    """
+    Adds a search request to the database.
+    If the search request already exists, it does nothing.
+    """
+    conflict_target = "(chat_id, item_name, item_price_limit, location, radius)"
     with get_db_cursor(commit=True) as cur:
         cur.execute(
-            """DELETE FROM customer WHERE chat_id = (%s) AND item_name = (%s);""",
+            f"""INSERT INTO {Tables.SEARCHES} (chat_id, item_name, item_price_limit, location, radius)
+            VALUES (%s, %s, %s, %s, %s)
+            ON CONFLICT {conflict_target} DO NOTHING;""",
+            (
+                chat_id,
+                search_request.item_name,
+                search_request.price_limit,
+                search_request.location,
+                search_request.radius,
+            ),
+        )
+        return cur.rowcount
+
+
+def add_item_to_db(item: Item) -> int:
+    with get_db_cursor(commit=True) as cur:
+        cur.execute(
+            f"""INSERT INTO {Tables.ITEMS} (ebay_identifier, item_name, price, url, last_seen_date)
+            VALUES (%s, %s, %s, %s, %s)
+            ON CONFLICT (ebay_identifier) DO UPDATE SET
+                price = EXCLUDED.price,
+                last_seen_date = EXCLUDED.last_seen_date,
+                item_name = EXCLUDED.item_name,
+                url = EXCLUDED.url
+            RETURNING item_id;""",
+            (
+                item.identifier,
+                item.item_name,
+                item.price,
+                item.url,
+                item.last_seen_date,
+            ),
+        )
+        return cur.fetchone()[0]  # type: ignore # Will never be None, as we use RETURNING item_id
+
+
+def remove_item_from_search_db(chat_id: int, item_name: str):
+    with get_db_cursor(commit=True) as cur:
+        cur.execute(
+            f"""DELETE FROM {Tables.SEARCHES} WHERE chat_id = (%s) AND item_name = (%s);""",
             (
                 chat_id,
                 item_name,
@@ -93,61 +147,39 @@ def remove_item_from_customer_db(chat_id: int, item_name: str):
         )
 
 
-def entry_in_customer_db_exists(chat_id: int, item_name: str) -> bool:
+def get_item_from_db(identifier: str) -> Item | None:
     with get_db_cursor() as cur:
         cur.execute(
-            """SELECT chat_id,item_name FROM customer WHERE chat_id = (%s) AND item_name = (%s);""",
-            (
-                chat_id,
-                item_name,
-            ),
-        )
-        res_of_sql_exc = cur.fetchone()
-        if res_of_sql_exc == None:
-            return False
-        else:
-            return True
-
-
-def user_exists_in_db(chat_id: int) -> bool:
-    with get_db_cursor() as cur:
-        cur.execute(
-            """SELECT chat_id FROM customer WHERE chat_id = (%s);""",
-            (chat_id,),
-        )
-        res_of_sql_exc = cur.fetchone()
-        if res_of_sql_exc == None:
-            return False
-        else:
-            return True
-
-
-def check_if_item_exists_in_db(identifier: str) -> bool:
-    with get_db_cursor() as cur:
-        cur.execute(
-            """SELECT identifier FROM items WHERE identifier = (%s);""",
+            f"""SELECT * FROM {Tables.ITEMS} WHERE ebay_identifier = (%s);""",
             (identifier,),
         )
         res_of_sql_exc = cur.fetchone()
-        if res_of_sql_exc == None:
-            return False
-        else:
-            return True
+    if res_of_sql_exc is None:
+        logger.info(f"Item with identifier {identifier} not found in database.")
+        return None
+    else:
+        return Item.from_db(res_of_sql_exc)
 
 
-def add_item_to_db(item: ItemFromEbay):
-    with get_db_cursor(commit=True) as cur:
-        cur.execute(
-            """INSERT INTO items (item_name,identifier,price,url,date)
-            VALUES (%s,%s,%s,%s,%s);""",
-            (item.item_name, item.identifier, item.price, item.url, item.date),
-        )
-
-
-def get_all_items_by_user_from_db(chat_id: int) -> list[str]:
+def check_if_notification_already_sent_db(search_id: int, item_id: int) -> bool:
     with get_db_cursor() as cur:
         cur.execute(
-            """SELECT item_name FROM customer WHERE chat_id = (%s);""",
+            f"""SELECT 1 FROM {Tables.NOTIFICATIONS} WHERE search_id = (%s) AND item_id = (%s);""",
+            (search_id, item_id),
+        )
+        res_of_sql_exc = cur.fetchone()
+    if res_of_sql_exc is None:
+        logger.info(f"No notification sent for search_id {search_id} and item_id {item_id}.")
+        return False
+    else:
+        logger.info(f"Notification already sent for search_id {search_id} and item_id {item_id}.")
+        return True
+
+
+def get_all_search_requests_by_user_from_db(chat_id: int) -> list[str]:
+    with get_db_cursor() as cur:
+        cur.execute(
+            f"""SELECT item_name FROM {Tables.SEARCHES} WHERE chat_id = (%s);""",
             (chat_id,),
         )
         res_of_sql = cur.fetchall()
@@ -185,13 +217,18 @@ def update_values_in_customer_db(chat_id: int, updates: list):
     cur.close()
 
 
-# Gets all the data from customer such that we can scrape it
-# TODO: Change database format otherwise it could happen we scrape twice the same item, maybe join the chat_ids with the same characteristics
 def fetch_for_scraping() -> list[tuple]:
     """
     Fetches all the data from the customer table in the database
     """
     with get_db_cursor() as cur:
-        cur.execute("""SELECT * FROM customer;""")
+        cur.execute(
+            f"""SELECT search_id, 
+                chat_id, 
+                item_name, 
+                item_price_limit, 
+                location, 
+                radius FROM {Tables.SEARCHES};"""
+        )
         res_of_sql_exc = cur.fetchall()
     return res_of_sql_exc

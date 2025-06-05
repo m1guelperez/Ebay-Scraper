@@ -5,17 +5,17 @@ import telegram
 from utils.utils import (
     parse_update_message,
     parse_remove_message,
-    extract_customer_values,
+    extract_search_values,
 )
 from constants import RADIUS
 from utils.postgres_utils import (
     add_user_to_db,
-    user_exists_in_db,
-    entry_in_customer_db_exists,
+    get_item_from_db,
     remove_customer_from_db,
-    get_all_items_by_user_from_db,
+    get_all_search_requests_by_user_from_db,
     update_values_in_customer_db,
-    remove_item_from_customer_db,
+    remove_item_from_search_db,
+    add_search_request_db,
 )
 import logging
 
@@ -29,6 +29,13 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error("Error: effective_chat is None in start_command")
         return
     logger.info(f"Got start command from {update.effective_chat.id}")
+    rows_affected = add_user_to_db(
+        int(update.message.from_user.id)
+    )  # Add user to db the database handles the case if the user already exists.
+    if rows_affected == 0:
+        logger.info(f"The user {update.effective_chat.id} already exists in the db.")
+    else:
+        logger.info(f"Successfully added user {update.effective_chat.id} to db")
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=f"""Hello! This is the EbayAlerts bot.
@@ -49,10 +56,10 @@ async def init_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error("Error: effective_chat is None in init_command")
         return
     logger.info(f"Got init command from {update.effective_chat.id}")
-    customer_values = extract_customer_values(
+    search_values = extract_search_values(
         chat_message=update.message.text, chat_id=update.effective_chat.id
     )
-    if customer_values is None:
+    if search_values is None:
         await context.bot.send_message(
             text=(
                 """Please use the following format:
@@ -63,17 +70,17 @@ async def init_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             chat_id=update.effective_chat.id,
         )
         return
-    if customer_values.radius not in RADIUS:
+    if search_values.radius not in RADIUS:
         await context.bot.send_message(
             text=f"The radius has to be: {RADIUS}!",
             chat_id=update.effective_chat.id,
         )
         return
-    rows_affected = add_user_to_db(
-        int(update.message.from_user.id)
+    rows_affected = add_search_request_db(
+        int(update.message.from_user.id), search_values
     )  # The method handles the case if the user already exists in the db.
     if rows_affected == 0:
-        logger.info(f"User {update.effective_chat.id} already exists in db, skipping adding to db")
+        logger.info(f"The search request for user {update.effective_chat.id} already exists.")
         await context.bot.send_message(
             text="""You already initialized the bot!
     If you want to add a new item, please use the /add command.
@@ -84,11 +91,9 @@ async def init_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     If you need help, use the /help command.""",
             chat_id=update.effective_chat.id,
         )
-    else:
-        logger.info(f"Successfully user {update.effective_chat.id} added to db")
-    logger.info(f"Successfully added user {update.effective_chat.id} to db")
+    logger.info(f"Successfully added search request from user with ID {update.effective_chat.id} to db")
     await context.bot.send_message(
-        text="Great user is initialized!",
+        text="Great search request was added!",
         chat_id=update.effective_chat.id,
     )
 
@@ -109,7 +114,7 @@ async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error("Error: effective_chat is None in add_command")
         return
     logger.info(f"Got add command from {update.effective_chat.id}")
-    customer_values = extract_customer_values(
+    customer_values = extract_search_values(
         chat_message=update.message.text, chat_id=update.effective_chat.id
     )
     if customer_values == None:
@@ -128,8 +133,7 @@ async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             chat_id=update.effective_chat.id,
         )
         return
-    if not entry_in_customer_db_exists(int(update.message.from_user.id), customer_values.item_name):
-        add_user_to_db(int(update.message.from_user.id))
+    if not get_item_from_db(int(update.message.from_user.id), customer_values.item_name):
         await context.bot.send_message(
             text=f"'{customer_values.item_name.capitalize()}' with a price limit of {customer_values.price_limit}€ and a radius of {customer_values.radius} km in {customer_values.location} successfully added to your watchlist!",
             chat_id=update.effective_chat.id,
@@ -157,8 +161,8 @@ async def remove_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     else:
         for item in items:
-            if entry_in_customer_db_exists(int(update.message.from_user.id), item):
-                remove_item_from_customer_db(int(update.message.from_user.id), item)
+            if get_item_from_db(int(update.message.from_user.id), item):
+                remove_item_from_search_db(int(update.message.from_user.id), item)
                 msg = f"{item.capitalize()} successfully removed!"
                 await context.bot.send_message(text=msg, chat_id=update.effective_chat.id)
             else:
@@ -183,7 +187,7 @@ async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error("Error: effective_chat is None in list_command")
         return
     logger.info(f"Got list command from {update.effective_chat.id}")
-    items = get_all_items_by_user_from_db(update.effective_chat.id)
+    items = get_all_search_requests_by_user_from_db(update.effective_chat.id)
     if not items:
         await context.bot.send_message(
             text="You currently have no items added!\nYou can add some using the /add command.",
