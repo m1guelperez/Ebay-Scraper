@@ -50,7 +50,7 @@ def select_all_items_from_db() -> list[tuple]:
     return res_of_sql_exc
 
 
-# Used as initializing for the new customer (/init command in telegram)
+# Used as initializing for the new users (/init command in telegram)
 def add_user_to_db(chat_id: int) -> int:
     """
     Adds a new user to the database.
@@ -66,7 +66,7 @@ def add_user_to_db(chat_id: int) -> int:
         return cur.rowcount
 
 
-def remove_customer_from_db(chat_id: int):
+def remove_user_from_db(chat_id: int):
     with get_db_cursor(commit=True) as cur:
         cur.execute(
             f"""DELETE FROM {Tables.USERS} WHERE chat_id = (%s);""",
@@ -186,40 +186,9 @@ def get_all_search_requests_by_user_from_db(chat_id: int) -> list[str]:
     return [res[0] for res in res_of_sql]
 
 
-# update[0] is the field we want to update in the database and update[1] the new value
-# TODO: refactor, its really ugly
-def update_values_in_customer_db(chat_id: int, updates: list):
-    conn = connect_to_db()
-    cur = conn.cursor()
-    item_name = updates.pop(0)[1]
-    update_field = ""
-    for update in updates:
-        if str(update[0]).lower() == "pricelimit":
-            update_field = "item_price_limit"
-        elif str(update[0]).lower() == "location":
-            update_field = "location"
-        elif str(update[0]).lower() == "radius":
-            update_field = "radius"
-        cur.execute(
-            SQL(
-                """UPDATE customer SET {column} = (%s) WHERE item_name = (%s) AND chat_id = (%s);"""
-            ).format(
-                column=Identifier(update_field),
-            ),
-            (
-                update[1],
-                item_name,
-                chat_id,
-            ),
-        )
-        conn.commit()
-    conn.close()
-    cur.close()
-
-
 def fetch_for_scraping() -> list[tuple]:
     """
-    Fetches all the data from the customer table in the database
+    Fetches all the data from the search_criteria table in the database
     """
     with get_db_cursor() as cur:
         cur.execute(

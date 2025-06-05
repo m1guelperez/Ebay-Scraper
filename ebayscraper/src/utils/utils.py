@@ -125,12 +125,12 @@ def is_schema_format(string: str) -> bool:
 
 def extract_search_values(chat_message: str, chat_id: int) -> SearchRequest | None:
     if is_schema_format(chat_message):
-        logger.info("Using schema format to extract customer values.")
+        logger.info("Using schema format to extract search values.")
         search_values = parse_item_schema_message(chat_id, chat_message)
     else:
-        logger.info("Using machine learning model to extract customer values.")
+        logger.info("Using machine learning model to extract search values.")
         search_values = extract_search_values_with_ml(chat_id=chat_id, chat_message=chat_message)
     if search_values is None:
-        logger.error("Error: Could not extract customer values from message.")
+        logger.error("Error: Could not extract search values from message.")
         return None
     return search_values

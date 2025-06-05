@@ -11,9 +11,8 @@ from constants import RADIUS
 from utils.postgres_utils import (
     add_user_to_db,
     get_item_from_db,
-    remove_customer_from_db,
+    remove_user_from_db,
     get_all_search_requests_by_user_from_db,
-    update_values_in_customer_db,
     remove_item_from_search_db,
     add_search_request_db,
 )
@@ -91,7 +90,9 @@ async def init_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     If you need help, use the /help command.""",
             chat_id=update.effective_chat.id,
         )
-    logger.info(f"Successfully added search request from user with ID {update.effective_chat.id} to db")
+    logger.info(
+        f"Successfully added search request from user with ID {update.effective_chat.id} to db"
+    )
     await context.bot.send_message(
         text="Great search request was added!",
         chat_id=update.effective_chat.id,
@@ -114,10 +115,10 @@ async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error("Error: effective_chat is None in add_command")
         return
     logger.info(f"Got add command from {update.effective_chat.id}")
-    customer_values = extract_search_values(
+    search_values = extract_search_values(
         chat_message=update.message.text, chat_id=update.effective_chat.id
     )
-    if customer_values == None:
+    if search_values == None:
         await context.bot.send_message(
             text=(
                 """Please use the following format:
@@ -127,20 +128,20 @@ async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             chat_id=update.effective_chat.id,
         )
         return
-    if customer_values.radius not in RADIUS:
+    if search_values.radius not in RADIUS:
         await context.bot.send_message(
             text=f"The radius has to be: {RADIUS}!",
             chat_id=update.effective_chat.id,
         )
         return
-    if not get_item_from_db(int(update.message.from_user.id), customer_values.item_name):
+    if not get_item_from_db(int(update.message.from_user.id), search_values.item_name):
         await context.bot.send_message(
-            text=f"'{customer_values.item_name.capitalize()}' with a price limit of {customer_values.price_limit}€ and a radius of {customer_values.radius} km in {customer_values.location} successfully added to your watchlist!",
+            text=f"'{search_values.item_name.capitalize()}' with a price limit of {search_values.price_limit}€ and a radius of {search_values.radius} km in {search_values.location} successfully added to your watchlist!",
             chat_id=update.effective_chat.id,
         )
     else:
         await context.bot.send_message(
-            text=f"'{customer_values.item_name.capitalize()}' already exists in your watchlist!",
+            text=f"'{search_values.item_name.capitalize()}' already exists in your watchlist!",
             chat_id=update.effective_chat.id,
         )
 
@@ -175,7 +176,7 @@ async def unsubscribe_and_remove_command(update: Update, context: ContextTypes.D
         logger.error("Error: effective_chat is None in unsubscribe_and_remove_command")
         return
     logger.info(f"Got remove all command from {update.effective_chat.id}")
-    remove_customer_from_db(int(update.message.from_user.id))
+    remove_user_from_db(int(update.message.from_user.id))
     await context.bot.send_message(
         text="All items successfully removed!", chat_id=update.effective_chat.id
     )
@@ -200,20 +201,6 @@ async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             msg += item.capitalize() + "\n"
         msg_to_send = "Here is a list of your items:\n" + msg
         await context.bot.send_message(text=msg_to_send, chat_id=update.effective_chat.id)
-
-
-# /update command
-# TODO: Rework
-async def update_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_chat is None:
-        logger.error("Error: effective_chat is None in update_command")
-        return
-    logger.info(f"Got update command from {update.effective_chat.id}")
-    list_of_updates = parse_update_message(update.effective_chat.id, update.message.text)
-    update_values_in_customer_db(chat_id=update.effective_chat.id, updates=list_of_updates)
-    await context.bot.send_message(
-        chat_id=update.effective_chat.id, text="Your item specifications have been updated!"
-    )
 
 
 # Handler if command isn't recognized.
