@@ -63,7 +63,6 @@ CREATE TABLE search_criteria (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     CONSTRAINT uq_user_search UNIQUE NULLS NOT DISTINCT (chat_id, item_name, item_price_limit, location, radius)
 );
-);
 ```
 
 The `items` table looks like:
@@ -71,7 +70,7 @@ The `items` table looks like:
 CREATE TABLE items (
     item_id SERIAL PRIMARY KEY, -- A unique internal ID for the item
     ebay_identifier VARCHAR(400) UNIQUE NOT NULL, -- The unique ID from eBay
-    item_name_actual VARCHAR(400), -- The actual name of the item from eBay
+    item_name VARCHAR(400), -- The actual name of the item from eBay
     price INT,
     url VARCHAR(400),
     scraped_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- When this item was first scraped
