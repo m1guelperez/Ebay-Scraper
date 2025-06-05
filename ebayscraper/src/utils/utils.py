@@ -1,9 +1,9 @@
-from ebayscraper.src.classes import User
+from ebayscraper.src.classes import SearchRequest
 import aiohttp
 import json
 import urllib.parse
 import aiofiles
-from ebayscraper.src.utils.machine_learning import extract_customer_values_with_ml
+from ebayscraper.src.utils.machine_learning import extract_search_values_with_ml
 import logging
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ def replace_umlauts(string: str) -> str:
 
 
 # Get values from the incoming telegram message using the /init command
-def parse_item_schema_message(chat_id: int, message: str) -> User | None:
+def parse_item_schema_message(chat_id: int, message: str) -> SearchRequest | None:
     message_parts = message.split(",")
     # Remove the command part from the message
     message_parts[0] = message_parts[0].strip().split(" ")[1].strip()
@@ -31,7 +31,7 @@ def parse_item_schema_message(chat_id: int, message: str) -> User | None:
     location = message_parts[2].strip().lower()
     location = replace_umlauts(location)
     radius = int(message_parts[3].strip())
-    return User(
+    return SearchRequest(
         chat_id=chat_id,
         item_name=item,
         price_limit=pricelimit,
@@ -123,16 +123,14 @@ def is_schema_format(string: str) -> bool:
     return False
 
 
-def extract_customer_values(chat_message: str, chat_id: int) -> User | None:
+def extract_search_values(chat_message: str, chat_id: int) -> SearchRequest | None:
     if is_schema_format(chat_message):
         logger.info("Using schema format to extract customer values.")
-        customer_values = parse_item_schema_message(chat_id, chat_message)
+        search_values = parse_item_schema_message(chat_id, chat_message)
     else:
         logger.info("Using machine learning model to extract customer values.")
-        customer_values = extract_customer_values_with_ml(
-            chat_id=chat_id, chat_message=chat_message
-        )
-    if customer_values is None:
+        search_values = extract_search_values_with_ml(chat_id=chat_id, chat_message=chat_message)
+    if search_values is None:
         logger.error("Error: Could not extract customer values from message.")
         return None
-    return customer_values
+    return search_values

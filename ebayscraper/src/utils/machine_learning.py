@@ -1,7 +1,7 @@
 from llama_cpp import Llama
 from pprint import pprint
 import json
-from ebayscraper.src.classes import User
+from ebayscraper.src.classes import SearchRequest
 import logging
 
 logger = logging.getLogger(__name__)
@@ -92,7 +92,7 @@ llm = Llama(
 )
 
 
-def extract_customer_values_with_ml(chat_id: int, chat_message: str) -> User | None:
+def extract_search_values_with_ml(chat_id: int, chat_message: str) -> SearchRequest | None:
     """
     Extracts the JSON content from the assistant's response.
     """
@@ -131,7 +131,7 @@ def extract_customer_values_with_ml(chat_id: int, chat_message: str) -> User | N
         return None
 
     messages.pop()  # Remove the last user message
-    return User(
+    return SearchRequest(
         chat_id=chat_id,
         item_name=response_as_json["name"].lower().strip(),
         price_limit=int(response_as_json["preis"]),
