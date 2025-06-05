@@ -57,9 +57,9 @@ def parse_remove_message(message: str) -> list[str]:
     message_as_list = message.split(
         ","
     )  # Because of the '/remove' command, the message is split by commas.
-    message_as_list[0] = (
-        message_as_list[0].strip().split()[1].strip()
-    )  # Remove the '/remove' command from the list.
+    message_as_list[0] = " ".join(message_as_list[0].strip().split()[1:]).strip()
+    # Remove the '/remove' command from the list but also keep items that are split by whitespaces correct
+    # (e.g # '/remove ikeatisch weiß' should become 'ikeatisch weiß' and not just 'ikeatisch').
     message_as_list = [
         replace_umlauts(msg).lower().strip().replace(" ", "-") for msg in message_as_list
     ]

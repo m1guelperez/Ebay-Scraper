@@ -1,7 +1,6 @@
 import contextlib
 import psycopg2
 import psycopg2.extensions
-from psycopg2.sql import SQL, Identifier
 from ebayscraper.src.classes import Item, SearchRequest
 from ebayscraper.src.constants import DATABASE_PWD, PORT, USER, HOST, DATABASE, Tables
 import logging
@@ -147,7 +146,21 @@ def remove_item_from_search_db(chat_id: int, item_name: str):
         )
 
 
-def get_item_from_db(identifier: str) -> Item | None:
+def get_item_via_name_from_db(item_name: str) -> Item | None:
+    with get_db_cursor() as cur:
+        cur.execute(
+            f"""SELECT * FROM {Tables.ITEMS} WHERE item_name = (%s);""",
+            (item_name,),
+        )
+        res_of_sql_exc = cur.fetchone()
+    if res_of_sql_exc is None:
+        logger.info(f"Item with name {item_name} not found in database.")
+        return None
+    else:
+        return Item.from_db(res_of_sql_exc)
+
+
+def get_item_via_id_from_db(identifier: str) -> Item | None:
     with get_db_cursor() as cur:
         cur.execute(
             f"""SELECT * FROM {Tables.ITEMS} WHERE ebay_identifier = (%s);""",
@@ -176,14 +189,14 @@ def check_if_notification_already_sent_db(search_id: int, item_id: int) -> bool:
         return True
 
 
-def get_all_search_requests_by_user_from_db(chat_id: int) -> list[str]:
+def get_all_search_requests_by_user_from_db(chat_id: int) -> list[SearchRequest]:
     with get_db_cursor() as cur:
         cur.execute(
-            f"""SELECT item_name FROM {Tables.SEARCHES} WHERE chat_id = (%s);""",
+            f"""SELECT search_id, chat_id, item_name, item_price_limit, location, radius FROM {Tables.SEARCHES} WHERE chat_id = (%s);""",
             (chat_id,),
         )
         res_of_sql = cur.fetchall()
-    return [res[0] for res in res_of_sql]
+    return [SearchRequest.from_db(res) for res in res_of_sql]
 
 
 def fetch_for_scraping() -> list[tuple]:

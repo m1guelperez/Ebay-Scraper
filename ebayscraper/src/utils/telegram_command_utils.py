@@ -3,18 +3,18 @@ from telegram import Update
 import traceback
 import telegram
 from utils.utils import (
-    parse_update_message,
     parse_remove_message,
     extract_search_values,
 )
 from constants import RADIUS
 from utils.postgres_utils import (
     add_user_to_db,
-    get_item_from_db,
+    get_item_via_id_from_db,
     remove_user_from_db,
     get_all_search_requests_by_user_from_db,
     remove_item_from_search_db,
     add_search_request_db,
+    get_item_via_name_from_db,
 )
 import logging
 
@@ -134,12 +134,19 @@ async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             chat_id=update.effective_chat.id,
         )
         return
-    if not get_item_from_db(int(update.message.from_user.id), search_values.item_name):
+    rows_affected = add_search_request_db(
+        int(update.message.from_user.id), search_values
+    )  # The method handles the case if the search already exists in the db.
+    if rows_affected != 0:
+        logger.info(
+            f"Successfully added search request from user with ID {update.effective_chat.id} to db"
+        )
         await context.bot.send_message(
             text=f"'{search_values.item_name.capitalize()}' with a price limit of {search_values.price_limit}€ and a radius of {search_values.radius} km in {search_values.location} successfully added to your watchlist!",
             chat_id=update.effective_chat.id,
         )
     else:
+        logger.info(f"The search request for user {update.effective_chat.id} already exists.")
         await context.bot.send_message(
             text=f"'{search_values.item_name.capitalize()}' already exists in your watchlist!",
             chat_id=update.effective_chat.id,
@@ -161,13 +168,13 @@ async def remove_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             chat_id=update.effective_chat.id,
         )
     else:
-        for item in items:
-            if get_item_from_db(int(update.message.from_user.id), item):
-                remove_item_from_search_db(int(update.message.from_user.id), item)
-                msg = f"{item.capitalize()} successfully removed!"
+        for item_name in items:
+            if get_item_via_name_from_db(item_name):
+                remove_item_from_search_db(int(update.message.from_user.id), item_name)
+                msg = f"{item_name.capitalize()} successfully removed!"
                 await context.bot.send_message(text=msg, chat_id=update.effective_chat.id)
             else:
-                msg = f"{item.capitalize()} does not exist in your watchlist!"
+                msg = f"{item_name.capitalize()} does not exist in your watchlist!"
                 await context.bot.send_message(text=msg, chat_id=update.effective_chat.id)
 
 
@@ -195,11 +202,8 @@ async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             chat_id=update.effective_chat.id,
         )
     else:
-        msg = ""
-        for item in items:
-            logger.info(f"Item found: {item}")
-            msg += item.capitalize() + "\n"
-        msg_to_send = "Here is a list of your items:\n" + msg
+        item_descriptions = [f"{item.overview_in_message()}" for item in items]
+        msg_to_send = f"Here is a list of your items:\n{"\n".join(item_descriptions)}"
         await context.bot.send_message(text=msg_to_send, chat_id=update.effective_chat.id)
 
 
