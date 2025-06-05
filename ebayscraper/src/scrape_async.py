@@ -113,8 +113,7 @@ async def scrape_data_async(search_request: SearchRequest, bot: telegram.Bot):
 
         if item_from_ebay.price <= search_request.price_limit:
             logger.info(f"Message sent to chat_id: {search_request.chat_id}")
-            msg = f"""✨ New Offer Found for {item_from_ebay.item_name}! ✨
-🏷️ Item: {item_from_ebay.item_name}
+            msg = f"""✨ New Offer Found for {search_request.item_name}! ✨
 💰 Price: {item_from_ebay.price}€
 🔗 Link: {item_from_ebay.url}"""
             await send_notification(msg=msg, chat_id=search_request.chat_id, bot=bot)
