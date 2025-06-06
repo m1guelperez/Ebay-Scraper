@@ -3,7 +3,6 @@ import telegram
 import aiohttp
 from bs4 import BeautifulSoup, element
 import datetime
-from classes import Item
 from utils.utils import parse_price_to_int, get_location_id, replace_umlauts
 from constants import SCRAPE_URL, SCRAPE_INTERVAL
 from classes import SearchRequest, Item

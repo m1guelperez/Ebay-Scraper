@@ -172,7 +172,7 @@ def remove_search_id_from_search_db(chat_id: int, search_id: int) -> SearchReque
 def get_item_via_name_from_db(item_name: str) -> Item | None:
     with get_db_cursor() as cur:
         cur.execute(
-            f"""SELECT * FROM {Tables.ITEMS} WHERE item_name = (%s);""",
+            f"""SELECT item_id, ebay_identifier, item_name, price, url, last_seen_date FROM {Tables.ITEMS} WHERE item_name = (%s);""",
             (item_name,),
         )
         res_of_sql_exc = cur.fetchone()
@@ -186,7 +186,7 @@ def get_item_via_name_from_db(item_name: str) -> Item | None:
 def get_item_via_id_from_db(identifier: str) -> Item | None:
     with get_db_cursor() as cur:
         cur.execute(
-            f"""SELECT * FROM {Tables.ITEMS} WHERE ebay_identifier = (%s);""",
+            f"""SELECT item_id, ebay_identifier, item_name, price, url, last_seen_date FROM {Tables.ITEMS} WHERE ebay_identifier = (%s);""",
             (identifier,),
         )
         res_of_sql_exc = cur.fetchone()

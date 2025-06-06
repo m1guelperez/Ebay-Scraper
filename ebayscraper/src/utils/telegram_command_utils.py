@@ -196,6 +196,14 @@ async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     logger.info(f"Got list command from {update.effective_chat.id}")
     search_requests = get_all_search_requests_by_user_from_db(update.effective_chat.id)
+
+    if not search_requests:
+        await context.bot.send_message(
+            text="You have no search requests yet. Use /add to add a new search request.",
+            chat_id=update.effective_chat.id,
+        )
+        return
+
     message_text = "Here is a list of your requests. Tap to delete:\n"
     keyboard = []  # This will be a list of lists of buttons
 
