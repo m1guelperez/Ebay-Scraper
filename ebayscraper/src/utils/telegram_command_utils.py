@@ -196,16 +196,6 @@ async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     logger.info(f"Got list command from {update.effective_chat.id}")
     search_requests = get_all_search_requests_by_user_from_db(update.effective_chat.id)
-    # if not search_requests:
-    #     await context.bot.send_message(
-    #         text="You currently have no items added!\nYou can add some using the /add command.",
-    #         chat_id=update.effective_chat.id,
-    #     )
-    # else:
-    #     search_descriptions = [f"{request.overview_in_message()}" for request in search_requests]
-    #     msg_to_send = f"Here is a list of your requests:\n{"\n".join(search_descriptions)}"
-    #     await context.bot.send_message(text=msg_to_send, chat_id=update.effective_chat.id)
-    # --- Build the message and the keyboard ---
     message_text = "Here is a list of your requests. Tap to delete:\n"
     keyboard = []  # This will be a list of lists of buttons
 
@@ -305,8 +295,14 @@ async def delete_button_handler(update: Update, context: ContextTypes.DEFAULT_TY
     search_id_str = query.data.split(":")[1]
     search_id_to_delete = int(search_id_str)
 
-    remove_search_id_from_search_db(
+    affected_rows = remove_search_id_from_search_db(
         chat_id=int(update.effective_chat.id), search_id=search_id_to_delete
     )
+    if affected_rows == 0:
+        # await query.edit_message_text(text=f"❌ Search with ID {search_id_to_delete} not found.")
+        logger.info(
+            f"User {query.from_user.id} tried to delete non-existing search {search_id_to_delete}"
+        )
+        return
     await query.edit_message_text(text=f"✅ Search with ID {search_id_to_delete} has been deleted.")
     logger.info(f"User {query.from_user.id} deleted search {search_id_to_delete}")
