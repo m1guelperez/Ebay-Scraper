@@ -136,12 +136,29 @@ def add_item_to_db(item: Item) -> int:
 
 
 def remove_item_from_search_db(chat_id: int, item_name: str):
+    """
+    Removes a search request from the database based on chat_id and item_name.
+    """
     with get_db_cursor(commit=True) as cur:
         cur.execute(
             f"""DELETE FROM {Tables.SEARCHES} WHERE chat_id = (%s) AND item_name = (%s);""",
             (
                 chat_id,
                 item_name,
+            ),
+        )
+
+
+def remove_search_id_from_search_db(chat_id: int, search_id: int):
+    """
+    Removes a search request from the database based on chat_id and search_id.
+    """
+    with get_db_cursor(commit=True) as cur:
+        cur.execute(
+            f"""DELETE FROM {Tables.SEARCHES} WHERE chat_id = (%s) AND search_id = (%s);""",
+            (
+                chat_id,
+                search_id,
             ),
         )
 

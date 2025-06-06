@@ -1,5 +1,5 @@
 from telegram.ext import ContextTypes
-from telegram import Update
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 import traceback
 import telegram
 from utils.utils import (
@@ -9,10 +9,10 @@ from utils.utils import (
 from constants import RADIUS
 from utils.postgres_utils import (
     add_user_to_db,
-    get_item_via_id_from_db,
     remove_user_from_db,
     get_all_search_requests_by_user_from_db,
     remove_item_from_search_db,
+    remove_search_id_from_search_db,
     add_search_request_db,
     get_item_via_name_from_db,
 )
@@ -195,16 +195,38 @@ async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error("Error: effective_chat is None in list_command")
         return
     logger.info(f"Got list command from {update.effective_chat.id}")
-    items = get_all_search_requests_by_user_from_db(update.effective_chat.id)
-    if not items:
-        await context.bot.send_message(
-            text="You currently have no items added!\nYou can add some using the /add command.",
-            chat_id=update.effective_chat.id,
+    search_requests = get_all_search_requests_by_user_from_db(update.effective_chat.id)
+    # if not search_requests:
+    #     await context.bot.send_message(
+    #         text="You currently have no items added!\nYou can add some using the /add command.",
+    #         chat_id=update.effective_chat.id,
+    #     )
+    # else:
+    #     search_descriptions = [f"{request.overview_in_message()}" for request in search_requests]
+    #     msg_to_send = f"Here is a list of your requests:\n{"\n".join(search_descriptions)}"
+    #     await context.bot.send_message(text=msg_to_send, chat_id=update.effective_chat.id)
+    # --- Build the message and the keyboard ---
+    message_text = "Here is a list of your requests. Tap to delete:\n"
+    keyboard = []  # This will be a list of lists of buttons
+
+    for i, request in enumerate(search_requests):
+        message_text += (
+            f"\n{i+1}. {request.item_name} (Price <= {request.price_limit}€ in {request.location})"
         )
-    else:
-        item_descriptions = [f"{item.overview_in_message()}" for item in items]
-        msg_to_send = f"Here is a list of your items:\n{"\n".join(item_descriptions)}"
-        await context.bot.send_message(text=msg_to_send, chat_id=update.effective_chat.id)
+
+        # Create a button for this item.
+        # The callback_data is a string that the bot will receive when the button is pressed.
+        button = InlineKeyboardButton(
+            text=f"❌ Delete #{i+1}",
+            callback_data=f"delete_search:{request.search_id}",  # e.g., "delete_search:5"
+        )
+        keyboard.append([button])  # Each button goes in its own list to appear on a new line
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await context.bot.send_message(
+        text=message_text, chat_id=update.effective_chat.id, reply_markup=reply_markup
+    )
 
 
 # Handler if command isn't recognized.
@@ -271,3 +293,20 @@ async def send_notification(chat_id: int, msg: str, bot: telegram.Bot):
         chat_id=chat_id,
         text=msg,
     )
+
+
+async def delete_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    if not query or not query.data:
+        return
+    await query.answer()
+
+    # We know the action is "delete_search", we just need the ID
+    search_id_str = query.data.split(":")[1]
+    search_id_to_delete = int(search_id_str)
+
+    remove_search_id_from_search_db(
+        chat_id=int(update.effective_chat.id), search_id=search_id_to_delete
+    )
+    await query.edit_message_text(text=f"✅ Search with ID {search_id_to_delete} has been deleted.")
+    logger.info(f"User {query.from_user.id} deleted search {search_id_to_delete}")

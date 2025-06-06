@@ -4,6 +4,7 @@ from telegram.ext import (
     filters,
     MessageHandler,
     Application,
+    CallbackQueryHandler,
 )
 from rich.logging import RichHandler
 from scrape_async import background_scraper
@@ -19,6 +20,7 @@ from utils.telegram_command_utils import (
     help_command,
     unsubscribe_and_remove_command,
     invalid_medium,
+    delete_button_handler,
 )
 from ebayscraper.src.constants import TOKEN
 import asyncio
@@ -27,7 +29,7 @@ import logging
 # Configure logging
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[RichHandler(rich_tracebacks=True, markup=True)]
+    handlers=[RichHandler(rich_tracebacks=True, markup=True)],
 )
 
 logger = logging.getLogger(__name__)
@@ -49,6 +51,7 @@ def main_telegram_bot() -> None:
     application.add_handler(CommandHandler("remove", remove_command))
     application.add_handler(CommandHandler("unsubscribe", unsubscribe_and_remove_command))
     application.add_handler(CommandHandler("list", list_command))
+    application.add_handler(CallbackQueryHandler(delete_button_handler, pattern=r"delete_search:"))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), no_command_message))
     application.add_handler(MessageHandler(filters.COMMAND, unknown_command))
