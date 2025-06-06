@@ -42,13 +42,6 @@ def connect_to_db() -> psycopg2.extensions.connection:
     return conn
 
 
-def select_all_items_from_db() -> list[tuple]:
-    with get_db_cursor() as cur:
-        cur.execute(f"""SELECT * FROM {Tables.ITEMS};""")
-        res_of_sql_exc = cur.fetchall()
-    return res_of_sql_exc
-
-
 # Used as initializing for the new users (/init command in telegram)
 def add_user_to_db(chat_id: int) -> int:
     """
@@ -66,6 +59,10 @@ def add_user_to_db(chat_id: int) -> int:
 
 
 def remove_user_from_db(chat_id: int):
+    """
+    Removes a user from the database based on chat_id.
+    If the user does not exist, it does nothing.
+    """
     with get_db_cursor(commit=True) as cur:
         cur.execute(
             f"""DELETE FROM {Tables.USERS} WHERE chat_id = (%s);""",
@@ -79,6 +76,11 @@ def remove_user_from_db(chat_id: int):
 
 
 def add_notification_sent_db(search_id: int, item_id: int):
+    """
+    Adds a notification sent record to the database.
+    If the record already exists, it does nothing.
+    This is used to prevent sending duplicate notifications for the same item.
+    """
     with get_db_cursor(commit=True) as cur:
         cur.execute(
             f"""INSERT INTO {Tables.NOTIFICATIONS} (search_id, item_id)
@@ -114,6 +116,10 @@ def add_search_request_db(chat_id: int, search_request: SearchRequest) -> int:
 
 
 def add_item_to_db(item: Item) -> int:
+    """
+    Adds an item to the database.
+    If the item already exists, it updates the existing record.
+    """
     with get_db_cursor(commit=True) as cur:
         cur.execute(
             f"""INSERT INTO {Tables.ITEMS} (ebay_identifier, item_name, price, url, last_seen_date)
@@ -169,11 +175,15 @@ def remove_search_id_from_search_db(chat_id: int, search_id: int) -> SearchReque
         return SearchRequest.from_db(res_of_sql_exc)
 
 
-def get_item_via_name_from_db(item_name: str) -> Item | None:
+def get_item_via_name_from_db(chat_id: int, item_name: str) -> Item | None:
+    """
+    Retrieves an item from the database based on chat_id and item_name.
+    If the item does not exist, it returns None.
+    """
     with get_db_cursor() as cur:
         cur.execute(
-            f"""SELECT item_id, ebay_identifier, item_name, price, url, last_seen_date FROM {Tables.ITEMS} WHERE item_name = (%s);""",
-            (item_name,),
+            f"""SELECT item_id, ebay_identifier, item_name, price, url, last_seen_date FROM {Tables.ITEMS} WHERE chat_id = (%s) AND item_name = (%s);""",
+            (chat_id, item_name),
         )
         res_of_sql_exc = cur.fetchone()
     if res_of_sql_exc is None:
@@ -184,6 +194,9 @@ def get_item_via_name_from_db(item_name: str) -> Item | None:
 
 
 def get_item_via_id_from_db(identifier: str) -> Item | None:
+    """
+    Retrieves an item from the database based on its ebay_identifier.
+    If the item does not exist, it returns None."""
     with get_db_cursor() as cur:
         cur.execute(
             f"""SELECT item_id, ebay_identifier, item_name, price, url, last_seen_date FROM {Tables.ITEMS} WHERE ebay_identifier = (%s);""",
@@ -198,6 +211,9 @@ def get_item_via_id_from_db(identifier: str) -> Item | None:
 
 
 def check_if_notification_already_sent_db(search_id: int, item_id: int) -> bool:
+    """
+    Checks if a notification for a specific search_id and item_id has already been sent.
+    Returns True if the notification has been sent, False otherwise."""
     with get_db_cursor() as cur:
         cur.execute(
             f"""SELECT 1 FROM {Tables.NOTIFICATIONS} WHERE search_id = (%s) AND item_id = (%s);""",
@@ -211,6 +227,11 @@ def check_if_notification_already_sent_db(search_id: int, item_id: int) -> bool:
 
 
 def get_all_search_requests_by_user_from_db(chat_id: int) -> list[SearchRequest]:
+    """
+    Retrieves all search requests for a specific user based on chat_id.
+    Returns a list of SearchRequest objects.
+    If no search requests are found, it returns an empty list.
+    """
     with get_db_cursor() as cur:
         cur.execute(
             f"""SELECT search_id, chat_id, item_name, item_price_limit, location, radius FROM {Tables.SEARCHES} WHERE chat_id = (%s);""",

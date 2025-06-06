@@ -169,7 +169,7 @@ async def remove_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     else:
         for item_name in items:
-            if get_item_via_name_from_db(item_name):
+            if get_item_via_name_from_db(update.effective_chat.id,item_name):
                 remove_item_from_search_db(int(update.message.from_user.id), item_name)
                 msg = f"{item_name.capitalize()} successfully removed!"
                 await context.bot.send_message(text=msg, chat_id=update.effective_chat.id)
