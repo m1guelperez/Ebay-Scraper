@@ -283,7 +283,7 @@ async def send_notification(chat_id: int, msg: str, bot: telegram.Bot):
     )
 
 
-async def delete_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def delete_button_handler(update: Update):
     query = update.callback_query
     if not query or not query.data:
         return
