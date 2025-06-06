@@ -1,6 +1,7 @@
 import asyncio
 import telegram
 import aiohttp
+import urllib.parse
 from bs4 import BeautifulSoup, element
 import datetime
 from utils.utils import parse_price_to_int, get_location_id, replace_umlauts
@@ -43,7 +44,8 @@ async def async_requests(
     )
     async with aiohttp.ClientSession() as session:
         async with session.get(
-            f"{EBAY_KLEINANZEIGEN_URL}{location}/{item}/k0{loc_id}r{radius}", headers=header
+            f"{EBAY_KLEINANZEIGEN_URL}{urllib.parse.quote(location)}/{urllib.parse.quote(item)}/k0{loc_id}r{radius}",
+            headers=header,
         ) as response:
             html = await response.text()
             soup = BeautifulSoup(html, "html.parser")
@@ -53,7 +55,7 @@ async def async_requests(
 async def background_scraper(bot: telegram.Bot):
     while True:
         logger.info(f"Starting scraping...")
-        results = fetch_for_scraping()
+        results = await fetch_for_scraping()
         if not results:
             logger.info("No requests found for scraping.")
             await asyncio.sleep(SCRAPE_INTERVAL)
@@ -86,9 +88,9 @@ async def scrape_data_async(search_request: SearchRequest, bot: telegram.Bot):
     for entry in soup.find_all("article", {"class": "aditem"}):
         db_item_id = None
         item_from_ebay = find_item_information(entry=entry)
-        existing_item = get_item_via_id_from_db(identifier=item_from_ebay.identifier)
+        existing_item = await get_item_via_id_from_db(identifier=item_from_ebay.identifier)
         if not existing_item:
-            db_item_id = add_item_to_db(item_from_ebay)
+            db_item_id = await add_item_to_db(item_from_ebay)
             logger.info(
                 f"Item {item_from_ebay.item_name} added to the database with ID {db_item_id}."
             )
@@ -104,7 +106,7 @@ async def scrape_data_async(search_request: SearchRequest, bot: telegram.Bot):
             )
             continue
 
-        if check_if_notification_already_sent_db(
+        if await check_if_notification_already_sent_db(
             search_id=search_request.search_id, item_id=db_item_id
         ):
             logger.debug(
@@ -112,13 +114,12 @@ async def scrape_data_async(search_request: SearchRequest, bot: telegram.Bot):
             )
             continue
 
-        if item_from_ebay.price <= search_request.price_limit:
-            logger.info(f"Message sent to chat_id: {search_request.chat_id}")
-            msg = f"""✨ New Offer Found for {search_request.item_name}! ✨
+        logger.info(f"Message sent to chat_id: {search_request.chat_id}")
+        msg = f"""✨ New Offer Found for {search_request.item_name}! ✨
 💰 Price: {item_from_ebay.price}€
 🔗 Link: {item_from_ebay.url}"""
-            await send_notification(msg=msg, chat_id=search_request.chat_id, bot=bot)
-            add_notification_sent_db(search_id=search_request.search_id, item_id=db_item_id)
+        await send_notification(msg=msg, chat_id=search_request.chat_id, bot=bot)
+        await add_notification_sent_db(search_id=search_request.search_id, item_id=db_item_id)
 
 
 # Extract the information for items of a given soup tag and returns an instance of ItemFromEbay that contains all the data

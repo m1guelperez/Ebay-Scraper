@@ -3,7 +3,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 import traceback
 import telegram
 from utils.utils import (
-    parse_remove_message,
+    parse_remove_search_query_message,
     extract_search_values,
 )
 from constants import RADIUS
@@ -14,7 +14,7 @@ from utils.postgres_utils import (
     remove_item_from_search_db,
     remove_search_id_from_search_db,
     add_search_request_db,
-    get_item_via_name_from_db,
+    get_search_via_name_from_db,
 )
 import logging
 
@@ -159,7 +159,7 @@ async def remove_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error("Error: effective_chat is None in remove_command")
         return
     logger.info(f"Got remove command from {update.effective_chat.id}")
-    items = parse_remove_message(update.message.text)
+    items = parse_remove_search_query_message(update.message.text)
     if not items:
         await context.bot.send_message(
             text="""Please use the following format:
@@ -169,8 +169,8 @@ async def remove_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     else:
         for item_name in items:
-            if get_item_via_name_from_db(update.effective_chat.id,item_name):
-                remove_item_from_search_db(int(update.message.from_user.id), item_name)
+            if get_search_via_name_from_db(update.effective_chat.id, item_name):
+                await remove_item_from_search_db(int(update.message.from_user.id), item_name)
                 msg = f"{item_name.capitalize()} successfully removed!"
                 await context.bot.send_message(text=msg, chat_id=update.effective_chat.id)
             else:
@@ -183,7 +183,7 @@ async def unsubscribe_and_remove_command(update: Update, context: ContextTypes.D
         logger.error("Error: effective_chat is None in unsubscribe_and_remove_command")
         return
     logger.info(f"Got remove all command from {update.effective_chat.id}")
-    remove_user_from_db(int(update.message.from_user.id))
+    await remove_user_from_db(int(update.message.from_user.id))
     await context.bot.send_message(
         text="All items successfully removed!", chat_id=update.effective_chat.id
     )
@@ -195,7 +195,7 @@ async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error("Error: effective_chat is None in list_command")
         return
     logger.info(f"Got list command from {update.effective_chat.id}")
-    search_requests = get_all_search_requests_by_user_from_db(update.effective_chat.id)
+    search_requests = await get_all_search_requests_by_user_from_db(update.effective_chat.id)
 
     if not search_requests:
         await context.bot.send_message(
@@ -291,7 +291,7 @@ async def send_notification(chat_id: int, msg: str, bot: telegram.Bot):
     )
 
 
-async def delete_button_handler(update: Update):
+async def delete_button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     if not query or not query.data:
         return
@@ -301,8 +301,8 @@ async def delete_button_handler(update: Update):
     search_id_str = query.data.split(":")[1]
     search_id_to_delete = int(search_id_str)
 
-    res_of_sql = remove_search_id_from_search_db(
-        chat_id=int(update.effective_chat.id), search_id=search_id_to_delete
+    res_of_sql = await remove_search_id_from_search_db(
+        chat_id=int(query.from_user.id), search_id=search_id_to_delete
     )
     if res_of_sql is None:
         # await query.edit_message_text(text=f"❌ Search with ID {search_id_to_delete} not found.")
