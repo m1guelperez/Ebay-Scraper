@@ -200,9 +200,7 @@ async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = []  # This will be a list of lists of buttons
 
     for i, request in enumerate(search_requests):
-        message_text += (
-            f"\n{i+1}. {request.item_name} (Price <= {request.price_limit}€ in {request.location})"
-        )
+        message_text += f"\n{i+1}. {request.item_name.capitalize()} für {request.price_limit}€ in {request.location.capitalize()} mit {request.radius}km Radius)\n"
 
         # Create a button for this item.
         # The callback_data is a string that the bot will receive when the button is pressed.
@@ -295,14 +293,14 @@ async def delete_button_handler(update: Update, context: ContextTypes.DEFAULT_TY
     search_id_str = query.data.split(":")[1]
     search_id_to_delete = int(search_id_str)
 
-    affected_rows = remove_search_id_from_search_db(
+    res_of_sql = remove_search_id_from_search_db(
         chat_id=int(update.effective_chat.id), search_id=search_id_to_delete
     )
-    if affected_rows == 0:
+    if res_of_sql is None:
         # await query.edit_message_text(text=f"❌ Search with ID {search_id_to_delete} not found.")
         logger.info(
             f"User {query.from_user.id} tried to delete non-existing search {search_id_to_delete}"
         )
         return
-    await query.edit_message_text(text=f"✅ Search with ID {search_id_to_delete} has been deleted.")
-    logger.info(f"User {query.from_user.id} deleted search {search_id_to_delete}")
+    await query.edit_message_text(text=f"✅ {res_of_sql.item_name.capitalize()} has been deleted.")
+    logger.info(f"User {query.from_user.id} deleted item from search with ID {search_id_to_delete}")

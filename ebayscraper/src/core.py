@@ -26,11 +26,11 @@ from ebayscraper.src.constants import TOKEN
 import asyncio
 import logging
 
-# Configure logging
 logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[RichHandler(rich_tracebacks=True, markup=True)],
+    format="%(asctime)s - %(levelname)s - [%(name)s] %(message)s",
+    handlers=[RichHandler(rich_tracebacks=True, markup=True, show_time=False, show_level=False)],
 )
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

@@ -40,7 +40,7 @@ async def async_requests(
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36 Edg/106.0.1370.47"
     }
     logger.info(
-        f"Scraping data for {item} in {location} with radius {radius} km using the following URL: {EBAY_KLEINANZEIGEN_URL}{location}/{item}/k0{loc_id}r{radius}"
+        f"Scraping data for {item.capitalize()} in {location.capitalize()} with radius {radius} km using the following URL: {EBAY_KLEINANZEIGEN_URL}{location}/{replace_umlauts(item)}/k0{loc_id}r{radius}"
     )
     async with aiohttp.ClientSession() as session:
         async with session.get(
@@ -53,7 +53,7 @@ async def async_requests(
 
 async def background_scraper(bot: telegram.Bot):
     while True:
-        logger.info(f"Scraping data at: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        logger.info(f"Starting scraping...")
         results = fetch_for_scraping()
         if not results:
             logger.info("No requests found for scraping.")

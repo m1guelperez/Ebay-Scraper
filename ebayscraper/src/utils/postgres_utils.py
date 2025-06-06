@@ -149,19 +149,24 @@ def remove_item_from_search_db(chat_id: int, item_name: str):
         )
 
 
-def remove_search_id_from_search_db(chat_id: int, search_id: int) -> int:
+def remove_search_id_from_search_db(chat_id: int, search_id: int) -> SearchRequest | None:
     """
     Removes a search request from the database based on chat_id and search_id.
     """
     with get_db_cursor(commit=True) as cur:
         cur.execute(
-            f"""DELETE FROM {Tables.SEARCHES} WHERE chat_id = (%s) AND search_id = (%s);""",
+            f"""DELETE FROM {Tables.SEARCHES} WHERE chat_id = (%s) AND search_id = (%s)
+            RETURNING search_id, chat_id, item_name, item_price_limit, location, radius;""",
             (
                 chat_id,
                 search_id,
             ),
         )
-        return cur.rowcount
+        res_of_sql_exc = cur.fetchone()
+    if res_of_sql_exc is None:
+        return None
+    else:
+        return SearchRequest.from_db(res_of_sql_exc)
 
 
 def get_item_via_name_from_db(item_name: str) -> Item | None:
