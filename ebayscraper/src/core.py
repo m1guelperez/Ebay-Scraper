@@ -5,6 +5,7 @@ from telegram.ext import (
     MessageHandler,
     Application,
 )
+from rich.logging import RichHandler
 from scrape_async import background_scraper
 from utils.telegram_command_utils import (
     start_command,
@@ -26,6 +27,7 @@ import logging
 # Configure logging
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[RichHandler(rich_tracebacks=True, markup=True)]
 )
 
 logger = logging.getLogger(__name__)

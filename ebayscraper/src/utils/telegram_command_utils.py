@@ -142,13 +142,13 @@ async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"Successfully added search request from user with ID {update.effective_chat.id} to db"
         )
         await context.bot.send_message(
-            text=f"'{search_values.item_name.capitalize()}' with a price limit of {search_values.price_limit}€ and a radius of {search_values.radius} km in {search_values.location} successfully added to your watchlist!",
+            text=f"'{search_values.item_name.capitalize()}' with a price limit of {search_values.price_limit}€ and a radius of {search_values.radius} km in {search_values.location.capitalize()} successfully added to your watchlist!",
             chat_id=update.effective_chat.id,
         )
     else:
         logger.info(f"The search request for user {update.effective_chat.id} already exists.")
         await context.bot.send_message(
-            text=f"'{search_values.item_name.capitalize()}' already exists in your watchlist!",
+            text=f"'{search_values.item_name.capitalize()}' with a price limit of {search_values.price_limit}€ and a radius of {search_values.radius} km in {search_values.location.capitalize()} already exists in your watchlist!\nIf you want to update it, please use the /update command.",
             chat_id=update.effective_chat.id,
         )
 
