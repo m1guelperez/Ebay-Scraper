@@ -16,3 +16,10 @@ PORT = loaded_file["postgres"]["port"]
 SCRAPE_URL = loaded_file["scrape_url"]
 RADIUS = loaded_file["radius"]
 SCRAPE_INTERVAL = loaded_file["scrape_interval"]
+
+
+class Tables:
+    USERS = loaded_file["tables"]["users"]
+    ITEMS = loaded_file["tables"]["items"]
+    NOTIFICATIONS = loaded_file["tables"]["notifications"]
+    SEARCHES = loaded_file["tables"]["searches"]

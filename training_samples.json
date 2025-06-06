@@ -1,0 +1,218 @@
+[
+    {
+        "role": "user",
+        "content": "Du bist ein Assistent der Informationen aus Sätzen extrahiert welche eigenschaften von Inseraten beschreiben. Die Sätze müssen die Informationen 'Name', 'Preis', 'Stadt' und 'Radius' enthalten und diese müssen extrahier werden. Wenn eine der Informationen fehlt antworte nur 'None'. Alle weiteren Informationen können ignoriert werden. Die Informationen sollen in einem JSON-Format innerhalb von einer Antwort zurückgegeben werden. Beende deine Antwort mit +++."
+    },
+    {
+        "role": "assistant",
+        "content": "Verstanden! Ich werde die Informationen als JSON Format zurückgeben. "
+    },
+    {
+        "role": "user",
+        "content": "MacBook Pro 16 Zoll 2020, 16GB RAM, 512GB SSD, 5590 Euro, München, 50km"
+    },
+    {
+        "role": "assistant",
+        "content": "{'name': 'MacBook Pro 16 Zoll 2020','preis': '5590','stadt': 'München','radius': 50}+++"
+    },
+    {
+        "role": "user",
+        "content": "Suche nach einem iPhone 14 Pro Max, 256GB, 1200 Euro, Berlin, 30km"
+    },
+    {
+        "role": "assistant",
+        "content": "{'name': 'iPhone 14 Pro Max 256GB', 'preis': '1200', 'stadt': 'Berlin', 'radius': 30}+++"
+    },
+    {
+        "role": "user",
+        "content": "Ich möchte ein Samsung Galaxy S21 kaufen, Hamburg, 20km"
+    },
+    {
+        "role": "assistant",
+        "content": "None+++"
+    },
+    {
+        "role": "user",
+        "content": "Ich möchte ein Samsung Galaxy S21 kaufen, 800 Euro, Hamburg, 20km"
+    },
+    {
+        "role": "assistant",
+        "content": "'name': 'Samsung Galaxy S21', 'preis': '800', 'stadt': 'Hamburg', 'radius': 20}+++"
+    },
+    {
+        "role": "user",
+        "content": "Fernseher, 55 Zoll, 4K, 600 Euro, Köln, 40km"
+    },
+    {
+        "role": "assistant",
+        "content": "{'name': 'Fernseher 55 Zoll 4K', 'preis': '600', 'stadt': 'Köln', 'radius': 40}+++"
+    },
+    {
+        "role": "user",
+        "content": "Ich möchte ein Fahrrad kaufen, Mountainbike, 500 Euro, Frankfurt, 25km"
+    },
+    {
+        "role": "assistant",
+        "content": "{'name': 'Fahrrad Mountainbike', 'preis': '500', 'stadt': 'Frankfurt', 'radius': 25}+++"
+    },
+    {
+        "role": "user",
+        "content": "Ich suche nach einem Laptop, Dell XPS 13, 1000 Euro, Stuttgart"
+    },
+    {
+        "role": "assistant",
+        "content": "None+++"
+    },
+    {
+        "role": "user",
+        "content": "Ich suche nach einem Laptop, Dell XPS 13, 1000 Euro, Stuttgart, 15km"
+    },
+    {
+        "role": "assistant",
+        "content": "{'name': 'Laptop Dell XPS 13', 'preis': '1000', 'stadt': 'Stuttgart', 'radius': 15}+++"
+    },
+    {
+        "role": "user",
+        "content": "Ich möchte ein Tablet kaufen, iPad Pro 12.9 Zoll, 128GB, 900 Euro, Düsseldorf, 10km"
+    },
+    {
+        "role": "assistant",
+        "content": "{'name': 'Tablet iPad Pro 12.9 Zoll', 'preis': '900', 'stadt': 'Düsseldorf', 'radius': 10}+++"
+    },
+    {
+        "role": "user",
+        "content": "Ich suche nach einem Fernseher, 65 Zoll, OLED, 1200 Euro, München"
+    },
+    {
+        "role": "assistant",
+        "content": "None+++"
+    },
+    {
+        "role": "user",
+        "content": "Ich suche nach einem Fernseher, 65 Zoll, OLED, 1200 Euro, München, 50km"
+    },
+    {
+        "role": "assistant",
+        "content": "{'name': 'Fernseher 65 Zoll OLED', 'preis': '1200', 'stadt': 'München', 'radius': 50}+++"
+    },
+    {
+        "role": "user",
+        "content": "Ich möchte ein E-Book Reader kaufen, Kindle Paperwhite, 200 Euro, Berlin, 15km"
+    },
+    {
+        "role": "assistant",
+        "content": "{'name': 'E-Book Reader Kindle Paperwhite', 'preis': '200', 'stadt': 'Berlin', 'radius': 15}+++"
+    },
+    {
+        "role": "user",
+        "content": "Ich suche nach einer Smartwatch, Apple Watch Series 7, 400 Euro, Hamburg, 20km"
+    },
+    {
+        "role": "assistant",
+        "content": "{'name': 'Smartwatch Apple Watch Series 7', 'preis': '400', 'stadt': 'Hamburg', 'radius': 20}+++"
+    },
+    {
+        "role": "user",
+        "content": "Gaming PC, Intel i9, 32GB RAM, 2000 Euro, Köln, 30km"
+    },
+    {
+        "role": "assistant",
+        "content": "{'name': 'Gaming PC Intel i9', 'preis': '2000', 'stadt': 'Köln', 'radius': 30}+++"
+    },
+    {
+        "role": "user",
+        "content": "Ich möchte ein Smartphone kaufen, OnePlus 9 Pro, 256GB, 900 Euro, Frankfurt, 25km"
+    },
+    {
+        "role": "assistant",
+        "content": "{'name': 'Smartphone OnePlus 9 Pro', 'preis': '900', 'stadt': 'Frankfurt', 'radius': 25}+++"
+    },
+    {
+        "role": "user",
+        "content": "Ich suche nach einem Drucker, HP LaserJet Pro, 150 Euro, Stuttgart"
+    },
+    {
+        "role": "assistant",
+        "content": "None+++"
+    },
+    {
+        "role": "user",
+        "content": "Ich suche nach einem Drucker, HP LaserJet Pro, 150 Euro, Stuttgart, 10km"
+    },
+    {
+        "role": "assistant",
+        "content": "{'name': 'Drucker HP LaserJet Pro', 'preis': '150', 'stadt': 'Stuttgart', 'radius': 10}+++"
+    },
+    {
+        "role": "user",
+        "content": "Ich möchte ein Gaming Laptop kaufen, ASUS ROG Zephyrus, 1500 Euro, Düsseldorf, 20km"
+    },
+    {
+        "role": "assistant",
+        "content": "{'name': 'Gaming Laptop ASUS ROG Zephyrus', 'preis': '1500', 'stadt': 'Düsseldorf', 'radius': 20}+++"
+    },
+    {
+        "role": "user",
+        "content": "Ich suche nach einem Bluetooth Lautsprecher, JBL Charge 5, 100 Euro, München, 15km"
+    },
+    {
+        "role": "assistant",
+        "content": "{'name': 'Bluetooth Lautsprecher JBL Charge 5', 'preis': '100', 'stadt': 'München', 'radius': 15}+++"
+    },
+    {
+        "role": "user",
+        "content": "Ich möchte ein Smart Home Gerät kaufen, Philips Hue Starter Kit, 80 Euro, Berlin, 10km"
+    },
+    {
+        "role": "assistant",
+        "content": "{'name': 'Smart Home Gerät Philips Hue Starter Kit', 'preis': '80', 'stadt': 'Berlin', 'radius': 10}+++"
+    },
+    {
+        "role": "user",
+        "content": "Ich suche nach einem Gaming Monitor, 27 Zoll, 144Hz, 300 Euro, Hamburg, 20km"
+    },
+    {
+        "role": "assistant",
+        "content": "{'name': 'Gaming Monitor 27 Zoll 144Hz', 'preis': '300', 'stadt': 'Hamburg', 'radius': 20}+++"
+    },
+    {
+        "role": "user",
+        "content": "Ich möchte ein Action Kamera kaufen, GoPro Hero 9, 400 Euro, Köln, 15km"
+    },
+    {
+        "role": "assistant",
+        "content": "{'name': 'Action Kamera GoPro Hero 9', 'preis': '400', 'stadt': 'Köln', 'radius': 15}+++"
+    },
+    {
+        "role": "user",
+        "content": "Bluetooth Kopfhörer, Sony WH-1000XM4, 250 Euro, Frankfurt, 20km"
+    },
+    {
+        "role": "assistant",
+        "content": "{'name': 'Bluetooth Kopfhörer Sony WH-1000XM4', 'preis': '250', 'stadt': 'Frankfurt', 'radius': 20}+++"
+    },
+    {
+        "role": "user",
+        "content": "Suche E-Scooter, Xiaomi Mi Pro 2, 500 Euro, Stuttgart, 15km"
+    },
+    {
+        "role": "assistant",
+        "content": "{'name': 'E-Scooter Xiaomi Mi Pro 2', 'preis': '500', 'stadt': 'Stuttgart', 'radius': 15}+++"
+    },
+    {
+        "role": "user",
+        "content": "Finde ein Smart TV, Samsung QLED 55 Zoll, 800 Euro, Düsseldorf, 30km"
+    },
+    {
+        "role": "assistant",
+        "content": "{'name': 'Smart TV Samsung QLED 55 Zoll', 'preis': '800', 'stadt': 'Düsseldorf', 'radius': 30}+++"
+    },
+    {
+        "role": "user",
+        "content": "Finde Gaming Headset, Razer Kraken für 100 Euro in Berlin mit 20km Umkreis"
+    },
+    {
+        "role": "assistant",
+        "content": "{'name': 'Gaming Headset Razer Kraken', 'preis': '100', 'stadt': 'Berlin', 'radius': 20}+++"
+    }
+]

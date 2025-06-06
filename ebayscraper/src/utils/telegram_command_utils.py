@@ -1,21 +1,20 @@
 from telegram.ext import ContextTypes
-from telegram import Update
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 import traceback
 import telegram
 from utils.utils import (
-    parse_update_message,
     parse_remove_message,
-    extract_customer_values,
+    extract_search_values,
 )
 from constants import RADIUS
 from utils.postgres_utils import (
-    add_customer_values_to_db,
-    user_exists_in_db,
-    entry_in_customer_db_exists,
-    remove_customer_from_db,
-    get_all_items_by_user_from_db,
-    update_values_in_customer_db,
-    remove_item_from_customer_db,
+    add_user_to_db,
+    remove_user_from_db,
+    get_all_search_requests_by_user_from_db,
+    remove_item_from_search_db,
+    remove_search_id_from_search_db,
+    add_search_request_db,
+    get_item_via_name_from_db,
 )
 import logging
 
@@ -29,6 +28,13 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error("Error: effective_chat is None in start_command")
         return
     logger.info(f"Got start command from {update.effective_chat.id}")
+    rows_affected = add_user_to_db(
+        int(update.message.from_user.id)
+    )  # Add user to db the database handles the case if the user already exists.
+    if rows_affected == 0:
+        logger.info(f"The user {update.effective_chat.id} already exists in the db.")
+    else:
+        logger.info(f"Successfully added user {update.effective_chat.id} to db")
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=f"""Hello! This is the EbayAlerts bot.
@@ -49,13 +55,10 @@ async def init_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error("Error: effective_chat is None in init_command")
         return
     logger.info(f"Got init command from {update.effective_chat.id}")
-    if update.message is None or update.message.text is None:
-        logger.error("Error: update.message or update.message.text is None in init_command")
-        return
-    customer_values = extract_customer_values(
+    search_values = extract_search_values(
         chat_message=update.message.text, chat_id=update.effective_chat.id
     )
-    if customer_values is None:
+    if search_values is None:
         await context.bot.send_message(
             text=(
                 """Please use the following format:
@@ -66,31 +69,34 @@ async def init_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             chat_id=update.effective_chat.id,
         )
         return
-    if customer_values.radius not in RADIUS:
+    if search_values.radius not in RADIUS:
         await context.bot.send_message(
             text=f"The radius has to be: {RADIUS}!",
             chat_id=update.effective_chat.id,
         )
         return
-    if not user_exists_in_db(int(update.message.from_user.id)):
-        logger.info(f"User does not exist in db, creating new user for {update.effective_chat.id}")
-        add_customer_values_to_db(int(update.message.from_user.id), customer_values)
-        logger.info(f"Successfully added user {update.effective_chat.id} to db")
+    rows_affected = add_search_request_db(
+        int(update.message.from_user.id), search_values
+    )  # The method handles the case if the user already exists in the db.
+    if rows_affected == 0:
+        logger.info(f"The search request for user {update.effective_chat.id} already exists.")
         await context.bot.send_message(
-            text="Great user is initialized!",
+            text="""You already initialized the bot!
+    If you want to add a new item, please use the /add command.
+    If you want to remove an item, please use the /remove command.
+    If you want to update an item, please use the /update command.
+    If you want to list all your items, please use the /list command.
+    If you want to remove all your items, please use the /removeall command.
+    If you need help, use the /help command.""",
             chat_id=update.effective_chat.id,
         )
-    else:
-        await context.bot.send_message(
-            text="""You already initialized the bot! 
-If you want to add a new item, please use the /add command.
-If you want to remove an item, please use the /remove command. 
-If you want to update an item, please use the /update command. 
-If you want to list all your items, please use the /list command. 
-If you want to remove all your items, please use the /removeall command. 
-If you need help, use the /help command.""",
-            chat_id=update.effective_chat.id,
-        )
+    logger.info(
+        f"Successfully added search request from user with ID {update.effective_chat.id} to db"
+    )
+    await context.bot.send_message(
+        text="Great search request was added!",
+        chat_id=update.effective_chat.id,
+    )
 
 
 # for everything different then a command
@@ -109,10 +115,10 @@ async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error("Error: effective_chat is None in add_command")
         return
     logger.info(f"Got add command from {update.effective_chat.id}")
-    customer_values = extract_customer_values(
+    search_values = extract_search_values(
         chat_message=update.message.text, chat_id=update.effective_chat.id
     )
-    if customer_values == None:
+    if search_values == None:
         await context.bot.send_message(
             text=(
                 """Please use the following format:
@@ -122,21 +128,27 @@ async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             chat_id=update.effective_chat.id,
         )
         return
-    if customer_values.radius not in RADIUS:
+    if search_values.radius not in RADIUS:
         await context.bot.send_message(
             text=f"The radius has to be: {RADIUS}!",
             chat_id=update.effective_chat.id,
         )
         return
-    if not entry_in_customer_db_exists(int(update.message.from_user.id), customer_values.item_name):
-        add_customer_values_to_db(int(update.message.from_user.id), customer_values)
+    rows_affected = add_search_request_db(
+        int(update.message.from_user.id), search_values
+    )  # The method handles the case if the search already exists in the db.
+    if rows_affected != 0:
+        logger.info(
+            f"Successfully added search request from user with ID {update.effective_chat.id} to db"
+        )
         await context.bot.send_message(
-            text=f"'{customer_values.item_name.capitalize()}' with a price limit of {customer_values.price_limit}€ and a radius of {customer_values.radius} km in {customer_values.location} successfully added to your watchlist!",
+            text=f"'{search_values.item_name.capitalize()}' with a price limit of {search_values.price_limit}€ and a radius of {search_values.radius} km in {search_values.location.capitalize()} successfully added to your watchlist!",
             chat_id=update.effective_chat.id,
         )
     else:
+        logger.info(f"The search request for user {update.effective_chat.id} already exists.")
         await context.bot.send_message(
-            text=f"'{customer_values.item_name.capitalize()}' already exists in your watchlist!",
+            text=f"'{search_values.item_name.capitalize()}' with a price limit of {search_values.price_limit}€ and a radius of {search_values.radius} km in {search_values.location.capitalize()} already exists in your watchlist!\nIf you want to update it, please use the /update command.",
             chat_id=update.effective_chat.id,
         )
 
@@ -156,13 +168,13 @@ async def remove_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             chat_id=update.effective_chat.id,
         )
     else:
-        for item in items:
-            if entry_in_customer_db_exists(int(update.message.from_user.id), item):
-                remove_item_from_customer_db(int(update.message.from_user.id), item)
-                msg = f"{item.capitalize()} successfully removed!"
+        for item_name in items:
+            if get_item_via_name_from_db(update.effective_chat.id,item_name):
+                remove_item_from_search_db(int(update.message.from_user.id), item_name)
+                msg = f"{item_name.capitalize()} successfully removed!"
                 await context.bot.send_message(text=msg, chat_id=update.effective_chat.id)
             else:
-                msg = f"{item.capitalize()} does not exist in your watchlist!"
+                msg = f"{item_name.capitalize()} does not exist in your watchlist!"
                 await context.bot.send_message(text=msg, chat_id=update.effective_chat.id)
 
 
@@ -171,7 +183,7 @@ async def unsubscribe_and_remove_command(update: Update, context: ContextTypes.D
         logger.error("Error: effective_chat is None in unsubscribe_and_remove_command")
         return
     logger.info(f"Got remove all command from {update.effective_chat.id}")
-    remove_customer_from_db(int(update.message.from_user.id))
+    remove_user_from_db(int(update.message.from_user.id))
     await context.bot.send_message(
         text="All items successfully removed!", chat_id=update.effective_chat.id
     )
@@ -183,32 +195,33 @@ async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error("Error: effective_chat is None in list_command")
         return
     logger.info(f"Got list command from {update.effective_chat.id}")
-    items = get_all_items_by_user_from_db(update.effective_chat.id)
-    if not items:
+    search_requests = get_all_search_requests_by_user_from_db(update.effective_chat.id)
+
+    if not search_requests:
         await context.bot.send_message(
-            text="You currently have no items added!\nYou can add some using the /add command.",
+            text="You have no search requests yet. Use /add to add a new search request.",
             chat_id=update.effective_chat.id,
         )
-    else:
-        msg = ""
-        for item in items:
-            logger.info(f"Item found: {item}")
-            msg += item.capitalize() + "\n"
-        msg_to_send = "Here is a list of your items:\n" + msg
-        await context.bot.send_message(text=msg_to_send, chat_id=update.effective_chat.id)
-
-
-# /update command
-# TODO: Rework
-async def update_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_chat is None:
-        logger.error("Error: effective_chat is None in update_command")
         return
-    logger.info(f"Got update command from {update.effective_chat.id}")
-    list_of_updates = parse_update_message(update.effective_chat.id, update.message.text)
-    update_values_in_customer_db(chat_id=update.effective_chat.id, updates=list_of_updates)
+
+    message_text = "Here is a list of your requests. Tap to delete:\n"
+    keyboard = []  # This will be a list of lists of buttons
+
+    for i, request in enumerate(search_requests):
+        message_text += f"\n{i+1}. {request.item_name.capitalize()} für {request.price_limit}€ in {request.location.capitalize()} mit {request.radius}km Radius)\n"
+
+        # Create a button for this item.
+        # The callback_data is a string that the bot will receive when the button is pressed.
+        button = InlineKeyboardButton(
+            text=f"❌ Delete #{i+1}",
+            callback_data=f"delete_search:{request.search_id}",  # e.g., "delete_search:5"
+        )
+        keyboard.append([button])  # Each button goes in its own list to appear on a new line
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
     await context.bot.send_message(
-        chat_id=update.effective_chat.id, text="Your item specifications have been updated!"
+        text=message_text, chat_id=update.effective_chat.id, reply_markup=reply_markup
     )
 
 
@@ -276,3 +289,26 @@ async def send_notification(chat_id: int, msg: str, bot: telegram.Bot):
         chat_id=chat_id,
         text=msg,
     )
+
+
+async def delete_button_handler(update: Update):
+    query = update.callback_query
+    if not query or not query.data:
+        return
+    await query.answer()
+
+    # We know the action is "delete_search", we just need the ID
+    search_id_str = query.data.split(":")[1]
+    search_id_to_delete = int(search_id_str)
+
+    res_of_sql = remove_search_id_from_search_db(
+        chat_id=int(update.effective_chat.id), search_id=search_id_to_delete
+    )
+    if res_of_sql is None:
+        # await query.edit_message_text(text=f"❌ Search with ID {search_id_to_delete} not found.")
+        logger.info(
+            f"User {query.from_user.id} tried to delete non-existing search {search_id_to_delete}"
+        )
+        return
+    await query.edit_message_text(text=f"✅ {res_of_sql.item_name.capitalize()} has been deleted.")
+    logger.info(f"User {query.from_user.id} deleted item from search with ID {search_id_to_delete}")

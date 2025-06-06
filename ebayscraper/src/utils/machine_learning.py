@@ -1,7 +1,7 @@
 from llama_cpp import Llama
 from pprint import pprint
 import json
-from ebayscraper.src.classes import Customer
+from ebayscraper.src.classes import SearchRequest
 import logging
 
 logger = logging.getLogger(__name__)
@@ -12,7 +12,7 @@ logger.setLevel(logging.INFO)
 # google/gemma-2-9b-it
 # m1guelperez/gemma-2-9b-it-Q5_0-GGUF
 
-messages = [
+MESSAGES = [
     {
         "role": "user",
         "content": "Du bist ein Assistent der Informationen aus Sätzen extrahiert welche eigenschaften von Inseraten beschreiben. "
@@ -81,6 +81,22 @@ messages = [
         "role": "assistant",
         "content": "None+++",
     },
+    {
+        "role": "user",
+        "content": "Ich möchte ein Auto kaufen, BMW 3er, 25000 Euro, München, 100km",
+    },
+    {
+        "role": "assistant",
+        "content": "{'name': 'BMW 3er', 'preis': '25000', 'stadt': 'München', 'radius': 100}+++",
+    },
+    {
+        "role": "user",
+        "content": "Grüne Ikea Komode, 100 Euro, Berlin, 10km",
+    },
+    {
+        "role": "assistant",
+        "content": "{'name': 'Grüne Ikea Komode', 'preis': '100', 'stadt': 'Berlin', 'radius': 10}+++",
+    },
 ]
 
 llm = Llama(
@@ -92,18 +108,18 @@ llm = Llama(
 )
 
 
-def extract_customer_values_with_ml(chat_id: int, chat_message: str) -> Customer | None:
+def extract_search_values_with_ml(chat_id: int, chat_message: str) -> SearchRequest | None:
     """
     Extracts the JSON content from the assistant's response.
     """
-    messages.append(
+    MESSAGES.append(
         {
             "role": "user",
             "content": chat_message,
         }
     )
     response = llm.create_chat_completion(
-        messages=messages,
+        messages=MESSAGES,
         max_tokens=1024,
         stop=["+++"],  # Stop generation when '+++' is encountered
     )
@@ -127,11 +143,11 @@ def extract_customer_values_with_ml(chat_id: int, chat_message: str) -> Customer
         logger.error(
             f"Response content that led to an error: {response['choices'][0]['message']['content']}"
         )
-        messages.pop()  # Remove the last user message in case of error
+        MESSAGES.pop()  # Remove the last user message in case of error
         return None
 
-    messages.pop()  # Remove the last user message
-    return Customer(
+    MESSAGES.pop()  # Remove the last user message
+    return SearchRequest(
         chat_id=chat_id,
         item_name=response_as_json["name"].lower().strip(),
         price_limit=int(response_as_json["preis"]),

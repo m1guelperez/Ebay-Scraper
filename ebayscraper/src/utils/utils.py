@@ -1,9 +1,9 @@
-from ebayscraper.src.classes import Customer
+from ebayscraper.src.classes import SearchRequest
 import aiohttp
 import json
 import urllib.parse
 import aiofiles
-from ebayscraper.src.utils.machine_learning import extract_customer_values_with_ml
+from ebayscraper.src.utils.machine_learning import extract_search_values_with_ml
 import logging
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ def replace_umlauts(string: str) -> str:
 
 
 # Get values from the incoming telegram message using the /init command
-def parse_item_schema_message(chat_id: int, message: str) -> Customer | None:
+def parse_search_schema_message(chat_id: int, message: str) -> SearchRequest | None:
     message_parts = message.split(",")
     # Remove the command part from the message
     message_parts[0] = message_parts[0].strip().split(" ")[1].strip()
@@ -31,7 +31,7 @@ def parse_item_schema_message(chat_id: int, message: str) -> Customer | None:
     location = message_parts[2].strip().lower()
     location = replace_umlauts(location)
     radius = int(message_parts[3].strip())
-    return Customer(
+    return SearchRequest(
         chat_id=chat_id,
         item_name=item,
         price_limit=pricelimit,
@@ -57,9 +57,9 @@ def parse_remove_message(message: str) -> list[str]:
     message_as_list = message.split(
         ","
     )  # Because of the '/remove' command, the message is split by commas.
-    message_as_list[0] = (
-        message_as_list[0].strip().split()[1].strip()
-    )  # Remove the '/remove' command from the list.
+    message_as_list[0] = " ".join(message_as_list[0].strip().split()[1:]).strip()
+    # Remove the '/remove' command from the list but also keep items that are split by whitespaces correct
+    # (e.g # '/remove ikeatisch weiß' should become 'ikeatisch weiß' and not just 'ikeatisch').
     message_as_list = [
         replace_umlauts(msg).lower().strip().replace(" ", "-") for msg in message_as_list
     ]
@@ -88,7 +88,7 @@ async def get_location_id(location: str) -> str | None:
         content = await file.read()
         location_ids = json.loads(content)
     if location in location_ids:
-        logger.info(f"Cache hit for '{location}'")
+        logger.debug(f"Cache hit for '{location}'")
         return location_ids[location]
     url = f"https://www.kleinanzeigen.de/s-ort-empfehlungen.json?query={urllib.parse.quote_plus(location)}"
     async with aiohttp.ClientSession() as session:
@@ -123,16 +123,14 @@ def is_schema_format(string: str) -> bool:
     return False
 
 
-def extract_customer_values(chat_message: str, chat_id: int) -> Customer | None:
+def extract_search_values(chat_message: str, chat_id: int) -> SearchRequest | None:
     if is_schema_format(chat_message):
-        logger.info("Using schema format to extract customer values.")
-        customer_values = parse_item_schema_message(chat_id, chat_message)
+        logger.info("Using schema format to extract search values.")
+        search_values = parse_search_schema_message(chat_id, chat_message)
     else:
-        logger.info("Using machine learning model to extract customer values.")
-        customer_values = extract_customer_values_with_ml(
-            chat_id=chat_id, chat_message=chat_message
-        )
-    if customer_values is None:
-        logger.error("Error: Could not extract customer values from message.")
+        logger.info("Using machine learning model to extract search values.")
+        search_values = extract_search_values_with_ml(chat_id=chat_id, chat_message=chat_message)
+    if search_values is None:
+        logger.error("Error: Could not extract search values from message.")
         return None
-    return customer_values
+    return search_values

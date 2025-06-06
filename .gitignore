@@ -1,4 +1,5 @@
 .vscode
+*.gguf
 *.sql
 tokens.txt
 config.json
