@@ -101,5 +101,5 @@ Create a new conda environment and use the following `pip install .` command. Af
 * [x] Use dev environment for testing new features
 * [ ] Group scrapes for same requests by different users
 * [ ] LLM into own process or async 
-* [ ] Overhaul item procedure
+* [ ] Maybe convert some DB columns to indices
 * [ ] Write tests
