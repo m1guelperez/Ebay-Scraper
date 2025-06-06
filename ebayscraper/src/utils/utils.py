@@ -88,7 +88,7 @@ async def get_location_id(location: str) -> str | None:
         content = await file.read()
         location_ids = json.loads(content)
     if location in location_ids:
-        logger.info(f"Cache hit for '{location}'")
+        logger.debug(f"Cache hit for '{location}'")
         return location_ids[location]
     url = f"https://www.kleinanzeigen.de/s-ort-empfehlungen.json?query={urllib.parse.quote_plus(location)}"
     async with aiohttp.ClientSession() as session:
