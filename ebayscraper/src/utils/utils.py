@@ -19,7 +19,7 @@ def replace_umlauts(string: str) -> str:
 
 
 # Get values from the incoming telegram message using the /init command
-def parse_item_schema_message(chat_id: int, message: str) -> SearchRequest | None:
+def parse_search_schema_message(chat_id: int, message: str) -> SearchRequest | None:
     message_parts = message.split(",")
     # Remove the command part from the message
     message_parts[0] = message_parts[0].strip().split(" ")[1].strip()
@@ -126,7 +126,7 @@ def is_schema_format(string: str) -> bool:
 def extract_search_values(chat_message: str, chat_id: int) -> SearchRequest | None:
     if is_schema_format(chat_message):
         logger.info("Using schema format to extract search values.")
-        search_values = parse_item_schema_message(chat_id, chat_message)
+        search_values = parse_search_schema_message(chat_id, chat_message)
     else:
         logger.info("Using machine learning model to extract search values.")
         search_values = extract_search_values_with_ml(chat_id=chat_id, chat_message=chat_message)
