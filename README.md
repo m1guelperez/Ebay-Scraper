@@ -99,6 +99,7 @@ Create a new conda environment and use the following `pip install .` command. Af
 * [x] Use async
 * [x] Replace channelbot with direct message bot
 * [x] Use dev environment for testing new features
-* [ ] Add conversation states for adding items
+* [ ] Group scrapes for same requests by different users
+* [ ] LLM into own process or async 
 * [ ] Overhaul item procedure
 * [ ] Write tests
