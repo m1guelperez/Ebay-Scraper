@@ -95,12 +95,12 @@ async def scrape_data_async(search_request: SearchRequest, bot: telegram.Bot):
             )
         else:
             db_item_id = existing_item.item_id
-            logger.info(
+            logger.debug(
                 f"Item {item_from_ebay.item_name} already exists in the database with ID {db_item_id}."
             )
 
         if item_from_ebay.price > search_request.price_limit:
-            logger.info(
+            logger.debug(
                 f"Item {item_from_ebay.item_name} exceeds price limit of {search_request.price_limit}€."
             )
             continue
@@ -108,7 +108,9 @@ async def scrape_data_async(search_request: SearchRequest, bot: telegram.Bot):
         if check_if_notification_already_sent_db(
             search_id=search_request.search_id, item_id=db_item_id
         ):
-            logger.info(f"Notification for item {item_from_ebay.item_name} already sent.")
+            logger.debug(
+                f"Notification for item {item_from_ebay.item_name} with ID {db_item_id} already sent."
+            )
             continue
 
         if item_from_ebay.price <= search_request.price_limit:

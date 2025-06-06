@@ -149,7 +149,7 @@ def remove_item_from_search_db(chat_id: int, item_name: str):
         )
 
 
-def remove_search_id_from_search_db(chat_id: int, search_id: int):
+def remove_search_id_from_search_db(chat_id: int, search_id: int) -> int:
     """
     Removes a search request from the database based on chat_id and search_id.
     """
@@ -161,6 +161,7 @@ def remove_search_id_from_search_db(chat_id: int, search_id: int):
                 search_id,
             ),
         )
+        return cur.rowcount
 
 
 def get_item_via_name_from_db(item_name: str) -> Item | None:
@@ -199,10 +200,8 @@ def check_if_notification_already_sent_db(search_id: int, item_id: int) -> bool:
         )
         res_of_sql_exc = cur.fetchone()
     if res_of_sql_exc is None:
-        logger.info(f"No notification sent for search_id {search_id} and item_id {item_id}.")
         return False
     else:
-        logger.info(f"Notification already sent for search_id {search_id} and item_id {item_id}.")
         return True
 
 
