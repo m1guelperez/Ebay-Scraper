@@ -118,7 +118,7 @@ async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     search_values = extract_search_values(
         chat_message=update.message.text, chat_id=update.effective_chat.id
     )
-    if search_values == None:
+    if search_values is None:
         await context.bot.send_message(
             text=(
                 """Please use the following format:

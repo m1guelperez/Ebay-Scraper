@@ -28,7 +28,7 @@ async def async_requests(
 ) -> BeautifulSoup | None:
     location = replace_umlauts(location).lower().strip().replace(" ", "-")
     loc_id = await get_location_id(location)
-    if loc_id == None:
+    if loc_id is None:
         logger.info(f"Location {location} not found.")
         await send_notification(
             msg=f"Location {location} not found. Please check the location.",
@@ -54,7 +54,7 @@ async def async_requests(
 
 async def background_scraper(bot: telegram.Bot):
     while True:
-        logger.info(f"Starting scraping...")
+        logger.info("Starting scraping...")
         results = await fetch_for_scraping()
         if not results:
             logger.info("No requests found for scraping.")
@@ -82,7 +82,7 @@ async def scrape_data_async(search_request: SearchRequest, bot: telegram.Bot):
         radius=search_request.radius,
         bot=bot,
     )
-    if soup == None:
+    if soup is None:
         logger.info(f"Scraping failed for {search_request.item_name} in {search_request.location}.")
         return
     for entry in soup.find_all("article", {"class": "aditem"}):
@@ -129,7 +129,7 @@ def find_item_information(entry: element.PageElement) -> Item:
     identifier = split_string[1]
     url = f"{EBAY_KLEINANZEIGEN_URL[: len(EBAY_KLEINANZEIGEN_URL) - 2]}{entry['data-href'][1:]}"
     price_html = entry.find("p", {"class": "aditem-main--middle--price-shipping--price"})
-    if price_html != None:
+    if price_html is not None:
         price = parse_price_to_int(str(price_html.text.strip()))
     else:
         price = 0
