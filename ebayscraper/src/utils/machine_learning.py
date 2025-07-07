@@ -1,5 +1,4 @@
 from llama_cpp import Llama
-from pprint import pprint
 import json
 from ebayscraper.src.classes import SearchRequest
 import logging

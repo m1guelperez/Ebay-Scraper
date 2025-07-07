@@ -23,7 +23,7 @@ class Item:
             item_name=item_tuple[2],
             price=item_tuple[3],
             url=item_tuple[4],
-            last_seen_date=item_tuple[6],
+            last_seen_date=item_tuple[5],
         )
 
 
