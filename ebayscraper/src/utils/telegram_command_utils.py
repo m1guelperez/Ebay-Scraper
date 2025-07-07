@@ -79,7 +79,9 @@ async def init_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         int(update.message.from_user.id), search_values
     )  # The method handles the case if the user already exists in the db.
     if rows_affected == 0:
-        logger.info(f"The search request for user {update.effective_chat.id} already exists.")
+        logger.info(
+            f"The search request for user {update.effective_chat.id} already exists."
+        )
         await context.bot.send_message(
             text="""You already initialized the bot!
     If you want to add a new item, please use the /add command.
@@ -146,7 +148,9 @@ async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             chat_id=update.effective_chat.id,
         )
     else:
-        logger.info(f"The search request for user {update.effective_chat.id} already exists.")
+        logger.info(
+            f"The search request for user {update.effective_chat.id} already exists."
+        )
         await context.bot.send_message(
             text=f"'{search_values.item_name.capitalize()}' with a price limit of {search_values.price_limit}€ and a radius of {search_values.radius} km in {search_values.location.capitalize()} already exists in your watchlist!\nIf you want to update it, please use the /update command.",
             chat_id=update.effective_chat.id,
@@ -169,16 +173,24 @@ async def remove_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     else:
         for item_name in items:
-            if get_search_via_name_from_db(update.effective_chat.id, item_name):
-                await remove_item_from_search_db(int(update.message.from_user.id), item_name)
+            if await get_search_via_name_from_db(update.effective_chat.id, item_name):
+                await remove_item_from_search_db(
+                    int(update.message.from_user.id), item_name
+                )
                 msg = f"{item_name.capitalize()} successfully removed!"
-                await context.bot.send_message(text=msg, chat_id=update.effective_chat.id)
+                await context.bot.send_message(
+                    text=msg, chat_id=update.effective_chat.id
+                )
             else:
                 msg = f"{item_name.capitalize()} does not exist in your watchlist!"
-                await context.bot.send_message(text=msg, chat_id=update.effective_chat.id)
+                await context.bot.send_message(
+                    text=msg, chat_id=update.effective_chat.id
+                )
 
 
-async def unsubscribe_and_remove_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def unsubscribe_and_remove_command(
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+):
     if update.effective_chat is None:
         logger.error("Error: effective_chat is None in unsubscribe_and_remove_command")
         return
@@ -195,7 +207,9 @@ async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error("Error: effective_chat is None in list_command")
         return
     logger.info(f"Got list command from {update.effective_chat.id}")
-    search_requests = await get_all_search_requests_by_user_from_db(update.effective_chat.id)
+    search_requests = await get_all_search_requests_by_user_from_db(
+        update.effective_chat.id
+    )
 
     if not search_requests:
         await context.bot.send_message(
@@ -208,15 +222,17 @@ async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = []  # This will be a list of lists of buttons
 
     for i, request in enumerate(search_requests):
-        message_text += f"\n{i+1}. {request.item_name.capitalize()} für {request.price_limit}€ in {request.location.capitalize()} mit {request.radius}km Radius)\n"
+        message_text += f"\n{i + 1}. {request.item_name.capitalize()} für {request.price_limit}€ in {request.location.capitalize()} mit {request.radius}km Radius)\n"
 
         # Create a button for this item.
         # The callback_data is a string that the bot will receive when the button is pressed.
         button = InlineKeyboardButton(
-            text=f"❌ Delete #{i+1}",
+            text=f"❌ Delete #{i + 1}",
             callback_data=f"delete_search:{request.search_id}",  # e.g., "delete_search:5"
         )
-        keyboard.append([button])  # Each button goes in its own list to appear on a new line
+        keyboard.append(
+            [button]
+        )  # Each button goes in its own list to appear on a new line
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -232,7 +248,8 @@ async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     logger.info(f"Got unknown command from {update.effective_chat.id}")
     await context.bot.send_message(
-        chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command."
+        chat_id=update.effective_chat.id,
+        text="Sorry, I didn't understand that command.",
     )
 
 
@@ -298,17 +315,25 @@ async def delete_button_handler(update: Update, context: ContextTypes.DEFAULT_TY
     await query.answer()
 
     # We know the action is "delete_search", we just need the ID
-    search_id_str = query.data.split(":")[1]
+    search_id_str = query.data.split(":")
+    if len(search_id_str) != 2:
+        logger.error(f"Invalid search ID format: {query.data}")
+        await query.edit_message_text(text="❌ Invalid search ID format.")
+        return
     search_id_to_delete = int(search_id_str)
 
     res_of_sql = await remove_search_id_from_search_db(
-        chat_id=int(query.from_user.id), search_id=search_id_to_delete
+        chat_id=int(update.effective_chat.id), search_id=search_id_to_delete
     )
     if res_of_sql is None:
         # await query.edit_message_text(text=f"❌ Search with ID {search_id_to_delete} not found.")
         logger.info(
-            f"User {query.from_user.id} tried to delete non-existing search {search_id_to_delete}"
+            f"User {update.effective_chat.id} tried to delete non-existing search {search_id_to_delete}"
         )
         return
-    await query.edit_message_text(text=f"✅ {res_of_sql.item_name.capitalize()} has been deleted.")
-    logger.info(f"User {query.from_user.id} deleted item from search with ID {search_id_to_delete}")
+    await query.edit_message_text(
+        text=f"✅ {res_of_sql.item_name.capitalize()} has been deleted."
+    )
+    logger.info(
+        f"User {update.effective_chat.id} deleted item from search with ID {search_id_to_delete}"
+    )
